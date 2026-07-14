@@ -1,0 +1,127 @@
+/* Bauhaus Design Tokens */
+:root {
+  --bauhaus-yellow: #F4B400;
+  --bauhaus-blue:   #2255D6;
+  --bauhaus-red:    #E8432E;
+  --bauhaus-black:  #111111;
+  --bauhaus-white:  #FFFFFF;
+  --bauhaus-grid-bg: #F5F5F2;
+
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Outfit', system-ui, sans-serif;
+}
+
+/* Reset and Core Layout */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  font-family: var(--font-body);
+  background-color: var(--bauhaus-grid-bg);
+  background-image: 
+    linear-gradient(rgba(17, 17, 17, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(17, 17, 17, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--bauhaus-black);
+  overflow: hidden;
+}
+
+#app {
+  height: 100%;
+  width: 100%;
+  display: flex;
+}
+
+/* Typography Rules */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: lowercase;
+  letter-spacing: -0.02em;
+}
+
+label, .label-text {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  text-transform: lowercase;
+  color: var(--bauhaus-black);
+  user-select: none;
+}
+
+/* Scrollbar customization - Bauhaus style (sharp, blocky) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bauhaus-white);
+  border-left: 2px solid var(--bauhaus-black);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bauhaus-black);
+  border: 1px solid var(--bauhaus-white);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--bauhaus-red);
+}
+
+/* Global Utility Classes */
+.bauhaus-border {
+  border: 2px solid var(--bauhaus-black);
+}
+
+.bauhaus-card {
+  background: var(--bauhaus-white);
+  border: 2px solid var(--bauhaus-black);
+  position: relative;
+}
+
+/* Custom Bauhaus Accent Lines */
+.accent-line-yellow {
+  height: 6px;
+  background-color: var(--bauhaus-yellow);
+  border-bottom: 2px solid var(--bauhaus-black);
+  width: 100%;
+}
+
+.accent-line-blue {
+  height: 6px;
+  background-color: var(--bauhaus-blue);
+  border-bottom: 2px solid var(--bauhaus-black);
+  width: 100%;
+}
+
+.accent-line-red {
+  height: 6px;
+  background-color: var(--bauhaus-red);
+  border-bottom: 2px solid var(--bauhaus-black);
+  width: 100%;
+}
+
+/* Asymmetric Grid Layout */
+.app-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+/* Content panels */
+.panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bauhaus-white);
+}
