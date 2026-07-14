@@ -1,0 +1,13 @@
+{
+  "name": "postbud/api",
+  "description": "PHP REST API Backend (Vanilla)",
+  "type": "project",
+  "require": {
+    "stout/stout": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "src/"
+    }
+  }
+}

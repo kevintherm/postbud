@@ -1,0 +1,13 @@
+{
+  "name": "postbud-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/web"
+  ],
+  "scripts": {
+    "web:dev": "bun --filter web dev",
+    "web:build": "bun --filter web build",
+    "api:serve": "./apps/api/vendor/bin/stout serve",
+    "dev": "bun run --parallel web:dev api:serve"
+  }
+}
