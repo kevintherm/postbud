@@ -54,14 +54,14 @@ When generating Svelte 5 components:
 
 When generating PHP code for `apps/api`:
 
-1. **Folder Structuring**: Code inside `src/` must follow the domain-based structuring under `App\Domain\`:
-   - `src/Domain/Controllers/` for controllers and handlers.
-   - `src/Domain/Models/` for database models.
-   - `src/Domain/Views/` for views/presentation logic.
-   - `src/Domain/Etc/` for other domain elements (services, repositories, etc.).
-2. **Routes & Handlers**: Define clean, explicit routes in `app.php`. If route handlers grow large, move the handler logic to separate Controller/Action classes inside `src/Domain/Controllers/`.
+1. **Folder Structuring**: Code inside `src/` must follow the domain-based structuring under `App\{DomainXXX}\` (e.g., `App\Database\`, `App\OpenApi\`, `App\Auth\`):
+   - `src/{DomainXXX}/Controllers/` for controllers and handlers.
+   - `src/{DomainXXX}/Models/` for database models.
+   - `src/{DomainXXX}/Views/` for views/presentation logic.
+   - `src/{DomainXXX}/{Other}/` for other domain elements (services, repositories, providers, etc.).
+2. **Routes & Handlers**: Define clean, explicit routes in `app.php`. If route handlers grow large, move the handler logic to separate Controller/Action classes inside `src/{DomainXXX}/Controllers/`.
 3. **JSON Payloads**: Ensure all API responses return clean JSON with proper HTTP status codes.
-4. **Database Rules**: Use Veloquent to build queries explicitly. Keep models small (placed in `src/Domain/Models/`) and split complex business logic.
+4. **Database Rules**: Use Veloquent to build queries explicitly. Keep models small (placed in `src/{DomainXXX}/Models/`) and split complex business logic.
 
 ### Example: Route Definition
 ```php

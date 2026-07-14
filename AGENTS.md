@@ -46,11 +46,11 @@ These rules are absolute. Do not violate them under any circumstance.
 - `/apps/api` - PHP Stout API backend.
   - `app.php` - Bootstrapping and route definitions.
   - `rr.yaml` - RoadRunner server configuration.
-  - `src/` - Autoloaded PHP application namespace (`App\`). Must be structured by Domain:
-    - `src/Domain/Controllers/` - Handlers/Controllers.
-    - `src/Domain/Models/` - Database Models.
-    - `src/Domain/Views/` - View templates/presentations.
-    - `src/Domain/Etc/` - Other domain code (Services, Repositories, etc.).
+  - `src/` - Autoloaded PHP application namespace (`App\`). Must be structured by Domain folders directly under `src/` (e.g., `src/Database/`, `src/OpenApi/`):
+    - `src/{DomainXXX}/Controllers/` - Handlers/Controllers.
+    - `src/{DomainXXX}/Models/` - Database Models.
+    - `src/{DomainXXX}/Views/` - View templates/presentations.
+    - `src/{DomainXXX}/{Other}/` - Other domain code (Services, Repositories, Providers, etc.).
 
 ### Tooling Commands
 Run these commands from the root directory:

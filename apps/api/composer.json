@@ -3,11 +3,28 @@
   "description": "PHP REST API Backend (Vanilla)",
   "type": "project",
   "require": {
-    "stout/stout": "*"
+    "stout/stout": "*",
+    "doctrine/orm": "^3.6",
+    "doctrine/migrations": "^3.9",
+    "symfony/cache": "^7.0",
+    "zircote/swagger-php": "^6.4",
+    "illuminate/collections": "^13.19",
+    "symfony/var-exporter": "^7.0",
+    "monolog/monolog": "^3.10"
   },
   "autoload": {
     "psr-4": {
       "App\\": "src/"
+    }
+  },
+  "require-dev": {
+    "vimeo/psalm": "^6.16",
+    "friendsofphp/php-cs-fixer": "^3.95",
+    "pestphp/pest": "^4.7"
+  },
+  "config": {
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
     }
   }
 }

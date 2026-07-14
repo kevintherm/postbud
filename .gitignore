@@ -4,3 +4,4 @@ node_modules/
 
 apps/api/storage/
 apps/api/bin/
+apps/api/.php-cs-fixer.cache
