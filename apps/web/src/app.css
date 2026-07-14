@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bauhaus-yellow: #F4B400;
+  --color-bauhaus-blue: #2255D6;
+  --color-bauhaus-red: #E8432E;
+  --color-bauhaus-black: #111111;
+  --color-bauhaus-white: #FFFFFF;
+  --color-bauhaus-grid-bg: #F5F5F2;
+
+  --font-bauhaus: 'Space Grotesk', system-ui, sans-serif;
+}
+
+/* Custom Base / Global Styles */
+@layer base {
+  body {
+    background-color: var(--color-bauhaus-grid-bg);
+    color: var(--color-bauhaus-black);
+    font-family: var(--font-bauhaus);
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  /* Universal lowercase rule for UI labels */
+  .lowercase-ui,
+  button,
+  label,
+  span.status-label,
+  thead,
+  th,
+  .tab-title,
+  a {
+    text-transform: lowercase;
+  }
+}
+
+/* Custom grid background effect */
+.bauhaus-grid {
+  background-color: var(--color-bauhaus-grid-bg);
+  background-image: 
+    linear-gradient(to right, rgba(17, 17, 17, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(17, 17, 17, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Scrollbars - Bauhaus style */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bauhaus-grid-bg);
+  border-left: 2px solid var(--color-bauhaus-black);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-bauhaus-black);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-bauhaus-red);
+}

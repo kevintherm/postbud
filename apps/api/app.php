@@ -24,10 +24,7 @@ $app = new Application(
     ]
 );
 
-$app->http()->routes(function (Router $router) {
-    $router->get('/', fn () => 'Hello World');
-    $router->get('/api/openapi.json', [OpenApiController::class, 'generate']);
-});
+$app->http()->routes(require __DIR__ . '/routes.php');
 
 if (PHP_SAPI === 'cli' && !getenv('RR_MODE')) {
     exit($app->runCli($argv));

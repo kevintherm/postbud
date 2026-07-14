@@ -53,12 +53,19 @@ final class DatabaseServiceProvider implements ServiceProvider
                 $config->setMetadataCache($cache);
                 $config->setQueryCache($cache);
                 $config->setResultCache($cache);
-
-                $dbPath = dirname(__DIR__, 3) . '/database/database.sqlite';
-                $connectionParams = [
-                    'driver' => 'pdo_sqlite',
-                    'path' => $dbPath,
-                ];
+                $dbPathVal = $_ENV['DB_PATH'] ?? null;
+                if ($dbPathVal === ':memory:') {
+                    $connectionParams = [
+                        'driver' => 'pdo_sqlite',
+                        'memory' => true,
+                    ];
+                } else {
+                    $dbPath = is_string($dbPathVal) ? $dbPathVal : dirname(__DIR__, 3) . '/database/database.sqlite';
+                    $connectionParams = [
+                        'driver' => 'pdo_sqlite',
+                        'path' => $dbPath,
+                    ];
+                }
 
                 $connection = DriverManager::getConnection($connectionParams, $config);
                 return new EntityManager($connection, $config);
@@ -114,7 +121,8 @@ final class DatabaseServiceProvider implements ServiceProvider
                 $migrator->migrate($plan, $migratorConfiguration);
             }
         } catch (\Throwable $e) {
-            fwrite(STDERR, "Migration boot failed: " . $e->getMessage() . "\n");
+            $stderr = fopen('php://stderr', 'w');
+            fwrite($stderr, "Migration boot failed: " . $e->getMessage() . "\n");
         }
     }
 }
