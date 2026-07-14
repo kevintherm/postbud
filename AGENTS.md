@@ -31,7 +31,6 @@ These rules are absolute. Do not violate them under any circumstance.
 ### 🎨 Bauhaus Design Language
 - The frontend **strictly** adheres to the **Bauhaus Design Language** detailed in [DESIGN.md](file://DESIGN.md).
 - Key design principles: Geometric shapes, flat fields of solid primary colors (Yellow, Blue, Red, Black, White), asymmetrical layout balance, and clean sans-serif typography.
-- **Do not use Tailwind CSS** unless the user explicitly requests it. Stick to Vanilla CSS custom properties and structured layouts.
 - Do not use drop shadows, gradients, rounded corners (keep them sharp or minimal), or pastel colors.
 
 ---

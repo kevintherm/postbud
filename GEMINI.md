@@ -18,7 +18,6 @@ When generating or modifying code for Postbud, follow these strict constraints:
 
 ### 🎨 Adherence to Bauhaus CSS
 - Ensure all styled elements strictly conform to the CSS custom properties and guidelines in [DESIGN.md](file://DESIGN.md).
-- Do not introduce CSS frameworks like Tailwind unless explicitly asked. Use standard CSS classes or Svelte scoped styles.
 
 ---
 
@@ -89,6 +88,5 @@ Refer to DESIGN.md for styling and AGENTS.md/GEMINI.md for architectural limits.
 Strict Constraints:
 1. No single file can exceed 500 lines. Split logic into small files.
 2. Svelte 5 runes ($state, $derived, $props) must be used.
-3. No Tailwind; use Bauhaus Vanilla CSS.
 4. Ensure all code is explicit and readable.
 ```
