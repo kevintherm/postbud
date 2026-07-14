@@ -17,11 +17,6 @@
       "App\\": "src/"
     }
   },
-  "autoload-dev": {
-    "psr-4": {
-      "Tests\\": "tests/"
-    }
-  },
   "require-dev": {
     "vimeo/psalm": "^6.16",
     "friendsofphp/php-cs-fixer": "^3.95",
