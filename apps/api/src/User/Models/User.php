@@ -118,7 +118,7 @@ class User implements JsonSerializable
             'email'        => $this->email,
             'role'         => $this->role,
             'sync_enabled' => $this->syncEnabled,
-            'created_at'   => $this->createdAt->format(\DateTimeInterface::ISO8601),
+            'created_at'   => $this->createdAt->format(\DateTimeInterface::ATOM),
         ];
     }
 }

@@ -46,7 +46,7 @@ $httpKernel->routes(function (Router $router) use ($app): void {
     $authMiddleware = $app->make(AuthMiddleware::class);
 
     // Root
-    $router->get('/', fn () => 'Hello World');
+    $router->get('/', fn () => 'Api OK');
 
     // OpenAPI spec
     $router->get('/api/openapi.json', [OpenApiController::class, 'generate']);
