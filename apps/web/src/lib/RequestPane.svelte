@@ -18,6 +18,16 @@
 <div class="request-pane panel">
   <!-- URL and Send Bar -->
   <div class="action-bar">
+    <div class="mode-select">
+      <Select
+        options={[
+          { value: 'static', label: 'static' },
+          { value: 'proxy', label: 'proxy' }
+        ]}
+        bind:value={store.routingMode}
+      />
+    </div>
+
     <div class="method-select">
       <Select
         options={methods}
@@ -207,8 +217,12 @@
     align-items: flex-end;
   }
 
+  .mode-select {
+    width: 100px;
+  }
+
   .method-select {
-    width: 140px;
+    width: 110px;
   }
 
   .url-input {

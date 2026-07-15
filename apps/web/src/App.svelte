@@ -1,29 +1,35 @@
 <script lang="ts">
-  import Sidebar from './lib/Sidebar.svelte';
-  import RequestPane from './lib/RequestPane.svelte';
-  import ResponsePane from './lib/ResponsePane.svelte';
-  import LoadingOverlay from './lib/components/LoadingOverlay.svelte';
-  import EnvironmentsModal from './lib/components/EnvironmentsModal.svelte';
-  import AuthModal from './lib/components/AuthModal.svelte';
-  import ProfileModal from './lib/components/ProfileModal.svelte';
-  import { store } from './lib/store.svelte';
+  import Sidebar from "./lib/Sidebar.svelte";
+  import RequestPane from "./lib/RequestPane.svelte";
+  import ResponsePane from "./lib/ResponsePane.svelte";
+  import LoadingOverlay from "./lib/components/LoadingOverlay.svelte";
+  import EnvironmentsModal from "./lib/components/EnvironmentsModal.svelte";
+  import AuthModal from "./lib/components/AuthModal.svelte";
+  import ProfileModal from "./lib/components/ProfileModal.svelte";
+  import { store } from "./lib/store.svelte";
 
   let showSplash = $state(true);
 
   function handleBeforeUnload(event: BeforeUnloadEvent) {
     event.preventDefault();
-    event.returnValue = '';
+    event.returnValue = "";
   }
+
+  $effect(() => {
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem("pb_routing_mode", store.routingMode);
+    }
+  });
 </script>
 
 <svelte:window onbeforeunload={handleBeforeUnload} />
 
 <!-- Animated Splash Screen on Load -->
-{#if showSplash}
-  <LoadingOverlay oncomplete={() => showSplash = false} />
+{#if showSplash && false}
+  <LoadingOverlay oncomplete={() => (showSplash = false)} />
 {/if}
 
-<main 
+<main
   class="app-grid"
   style="grid-template-columns: {store.sidebarCollapsed ? '0px' : '280px'} 1fr;"
 >
@@ -37,15 +43,15 @@
       type="button"
       class="sidebar-toggle"
       onclick={() => store.toggleSidebar()}
-      title={store.sidebarCollapsed ? 'expand sidebar' : 'collapse sidebar'}
+      title={store.sidebarCollapsed ? "expand sidebar" : "collapse sidebar"}
     >
-      {store.sidebarCollapsed ? '▶' : '◀'}
+      {store.sidebarCollapsed ? "▶" : "◀"}
     </button>
 
     <div class="top-section">
       <RequestPane />
     </div>
-    
+
     <div class="bottom-section">
       <ResponsePane />
     </div>
@@ -98,7 +104,9 @@
     align-items: center;
     justify-content: center;
     outline: none;
-    transition: background-color 0.1s ease, color 0.1s ease;
+    transition:
+      background-color 0.1s ease,
+      color 0.1s ease;
   }
 
   .sidebar-toggle:hover {
