@@ -188,6 +188,98 @@ export class ApiClientStore {
     this.activeRequest[type] = this.activeRequest[type].filter((item: HeaderOrParam) => item.id !== id);
   }
 
+  duplicateRequest(requestId: string) {
+    for (const col of this.collections) {
+      const idx = col.requests.findIndex(r => r.id === requestId);
+      if (idx !== -1) {
+        const orig = col.requests[idx];
+        const clone: RequestItem = {
+          id: 'req-' + generateId(),
+          name: `${orig.name} copy`,
+          method: orig.method,
+          url: orig.url,
+          headers: orig.headers.map(h => ({ ...h, id: generateId() })),
+          queryParams: orig.queryParams.map(q => ({ ...q, id: generateId() })),
+          body: orig.body,
+          bodyType: orig.bodyType
+        };
+        col.requests = [
+          ...col.requests.slice(0, idx + 1),
+          clone,
+          ...col.requests.slice(idx + 1)
+        ];
+        this.loadRequest(clone);
+        return;
+      }
+    }
+  }
+
+  renameRequest(requestId: string, newName: string) {
+    const trimmed = newName.trim();
+    if (!trimmed) return;
+    for (const col of this.collections) {
+      const req = col.requests.find(r => r.id === requestId);
+      if (req) {
+        req.name = trimmed;
+        if (this.activeRequest.id === requestId) {
+          this.activeRequest.name = trimmed;
+        }
+        break;
+      }
+    }
+  }
+
+  deleteRequest(requestId: string) {
+    for (const col of this.collections) {
+      const idx = col.requests.findIndex(r => r.id === requestId);
+      if (idx !== -1) {
+        col.requests = col.requests.filter(r => r.id !== requestId);
+        if (this.activeRequest.id === requestId) {
+          let fallback = false;
+          for (const c of this.collections) {
+            if (c.requests.length > 0) {
+              this.loadRequest(c.requests[0]);
+              fallback = true;
+              break;
+            }
+          }
+          if (!fallback) {
+            this.activeRequest = {
+              id: 'req-default',
+              name: 'custom request',
+              method: 'GET',
+              url: '/api/v1/users',
+              headers: [],
+              queryParams: [],
+              body: '',
+              bodyType: 'none'
+            };
+          }
+        }
+        break;
+      }
+    }
+  }
+
+  saveActiveRequest() {
+    for (const col of this.collections) {
+      const idx = col.requests.findIndex(r => r.id === this.activeRequest.id);
+      if (idx !== -1) {
+        col.requests[idx] = {
+          id: this.activeRequest.id,
+          name: this.activeRequest.name,
+          method: this.activeRequest.method,
+          url: this.activeRequest.url,
+          headers: this.activeRequest.headers.map(h => ({ ...h })),
+          queryParams: this.activeRequest.queryParams.map(q => ({ ...q })),
+          body: this.activeRequest.body,
+          bodyType: this.activeRequest.bodyType
+        };
+        break;
+      }
+    }
+  }
+
   // Executes the active request (mocked or live fetch)
   sendRequest() {
     if (this.responseState.loading) return;

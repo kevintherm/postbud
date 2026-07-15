@@ -3,6 +3,9 @@
   import Select from './components/Select.svelte';
   import HistorySection from './components/HistorySection.svelte';
   import AuthSidebarFooter from './AuthSidebarFooter.svelte';
+  import RequestContextMenu from './components/RequestContextMenu.svelte';
+  import RenameRequestModal from './components/RenameRequestModal.svelte';
+  import type { RequestItem } from './types';
 
   // Section expansion states
   let collectionsExpanded = $state(true);
@@ -14,8 +17,26 @@
     'col-debug': true
   });
 
+  // Context Menu state
+  let contextMenuVisible = $state(false);
+  let contextMenuX = $state(0);
+  let contextMenuY = $state(0);
+  let contextMenuTargetId = $state('');
+  let contextMenuTargetName = $state('');
+  let showRenameModal = $state(false);
+
   function toggleCollection(id: string) {
     expandedCollections[id] = !expandedCollections[id];
+  }
+
+  function handleRequestContextMenu(e: MouseEvent, req: RequestItem) {
+    e.preventDefault();
+    e.stopPropagation();
+    contextMenuX = e.clientX;
+    contextMenuY = e.clientY;
+    contextMenuTargetId = req.id;
+    contextMenuTargetName = req.name;
+    contextMenuVisible = true;
   }
 
   // Helper to color code HTTP methods in Bauhaus style
@@ -65,7 +86,8 @@
       </button>
       
       <div class="section-content">
-        <div class="collections-list">
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <div class="collections-list" oncontextmenu={(e) => e.preventDefault()}>
           {#each store.collections as col}
             <div class="collection-folder">
               <button 
@@ -87,6 +109,7 @@
                       type="button"
                       class="request-item {store.activeRequest.id === req.id ? 'active' : ''}"
                       onclick={() => store.loadRequest(req)}
+                      oncontextmenu={(e) => handleRequestContextMenu(e, req)}
                     >
                       <span class="method-badge {getMethodColorClass(req.method)}">{req.method}</span>
                       <span class="request-name">{req.name}</span>
@@ -107,6 +130,29 @@
   <!-- Auth Footer -->
   <AuthSidebarFooter />
 </aside>
+
+{#if contextMenuVisible}
+  <RequestContextMenu
+    x={contextMenuX}
+    y={contextMenuY}
+    onduplicate={() => store.duplicateRequest(contextMenuTargetId)}
+    onrename={() => showRenameModal = true}
+    ondelete={() => {
+      if (confirm(`delete request "${contextMenuTargetName}"?`)) {
+        store.deleteRequest(contextMenuTargetId);
+      }
+    }}
+    onclose={() => contextMenuVisible = false}
+  />
+{/if}
+
+{#if showRenameModal}
+  <RenameRequestModal
+    requestId={contextMenuTargetId}
+    initialName={contextMenuTargetName}
+    onclose={() => showRenameModal = false}
+  />
+{/if}
 
 <style>
   .sidebar {

@@ -6,14 +6,76 @@
   import EnvironmentsModal from "./lib/components/EnvironmentsModal.svelte";
   import AuthModal from "./lib/components/AuthModal.svelte";
   import ProfileModal from "./lib/components/ProfileModal.svelte";
+  import RenameRequestModal from "./lib/components/RenameRequestModal.svelte";
   import { store } from "./lib/store.svelte";
+  import { untrack } from "svelte";
 
   let showSplash = $state(true);
+  let showActiveRenameModal = $state(false);
 
   function handleBeforeUnload(event: BeforeUnloadEvent) {
     event.preventDefault();
     event.returnValue = "";
   }
+
+  function isTyping(event: KeyboardEvent): boolean {
+    const target = event.target as HTMLElement;
+    if (!target) return false;
+    const name = target.tagName.toUpperCase();
+    return name === "INPUT" || name === "TEXTAREA" || target.isContentEditable;
+  }
+
+  function handleGlobalKeydown(event: KeyboardEvent) {
+    if (isTyping(event)) return;
+
+    // Duplicate: Alt+D or Ctrl+D (prevent default for Ctrl+D so it doesn't open bookmark)
+    if (
+      (event.altKey && event.key.toLowerCase() === "d") ||
+      (event.ctrlKey && event.key.toLowerCase() === "d")
+    ) {
+      event.preventDefault();
+      store.duplicateRequest(store.activeRequest.id);
+    }
+    // Rename: F2 or Alt+R
+    else if (
+      event.key === "F2" ||
+      (event.altKey && event.key.toLowerCase() === "r")
+    ) {
+      event.preventDefault();
+      showActiveRenameModal = true;
+    }
+    // Delete: Delete or Alt+Backspace
+    else if (
+      event.key === "Delete" ||
+      (event.altKey && event.key === "Backspace")
+    ) {
+      event.preventDefault();
+      if (confirm(`delete request "${store.activeRequest.name}"?`)) {
+        store.deleteRequest(store.activeRequest.id);
+      }
+    }
+  }
+
+  $effect(() => {
+    const req = store.activeRequest;
+    if (!req) return;
+    const _track = {
+      name: req.name,
+      method: req.method,
+      url: req.url,
+      headers: req.headers
+        ? req.headers.map((h) => `${h.key}:${h.value}:${h.enabled}`)
+        : [],
+      queryParams: req.queryParams
+        ? req.queryParams.map((q) => `${q.key}:${q.value}:${q.enabled}`)
+        : [],
+      body: req.body,
+      bodyType: req.bodyType,
+    };
+    untrack(() => {
+      store.saveActiveRequest();
+    });
+  });
 
   $effect(() => {
     if (typeof localStorage !== "undefined") {
@@ -22,7 +84,10 @@
   });
 </script>
 
-<svelte:window onbeforeunload={handleBeforeUnload} />
+<svelte:window
+  onbeforeunload={handleBeforeUnload}
+  onkeydown={handleGlobalKeydown}
+/>
 
 <!-- Animated Splash Screen on Load -->
 {#if showSplash && false}
@@ -71,6 +136,15 @@
 <!-- Profile Management Modal -->
 {#if store.showProfileModal}
   <ProfileModal />
+{/if}
+
+<!-- Rename Request Modal -->
+{#if showActiveRenameModal}
+  <RenameRequestModal
+    requestId={store.activeRequest.id}
+    initialName={store.activeRequest.name}
+    onclose={() => (showActiveRenameModal = false)}
+  />
 {/if}
 
 <style>

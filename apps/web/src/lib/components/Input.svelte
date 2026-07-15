@@ -8,6 +8,8 @@
     class?: string;
     rows?: number;
     onchange?: (e: Event) => void;
+    autofocus?: boolean;
+    element?: HTMLInputElement | HTMLTextAreaElement | null;
   }
 
   let {
@@ -18,7 +20,9 @@
     disabled = false,
     class: customClass = '',
     rows = 3,
-    onchange
+    onchange,
+    autofocus = false,
+    element = $bindable(null)
   }: Props = $props();
 
   const id = 'input-' + Math.random().toString(36).substring(2, 9);
@@ -31,21 +35,25 @@
 
   {#if type === 'textarea'}
     <textarea
+      bind:this={element}
       {id}
       bind:value
       {placeholder}
       {disabled}
       {rows}
+      {autofocus}
       class="bauhaus-input font-body"
       onchange={onchange}
     ></textarea>
   {:else}
     <input
+      bind:this={element}
       {id}
       {type}
       bind:value
       {placeholder}
       {disabled}
+      {autofocus}
       class="bauhaus-input font-body"
       onchange={onchange}
     />
