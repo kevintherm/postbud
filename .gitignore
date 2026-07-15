@@ -1,7 +1,3 @@
 vendor/
 node_modules/
 .env
-
-apps/api/storage/
-apps/api/bin/
-apps/api/.php-cs-fixer.cache

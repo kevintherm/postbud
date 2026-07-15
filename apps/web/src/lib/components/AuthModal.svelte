@@ -1,77 +1,50 @@
 <script lang="ts">
-  import { store } from '../store.svelte';
-  import { simulateRequest } from '../mockEngine';
-  import Input from './Input.svelte';
-  import Button from './Button.svelte';
+  import { store } from "../store.svelte";
+  import { login, register, ApiError } from "../api";
+  import Input from "./Input.svelte";
+  import Button from "./Button.svelte";
 
-  let activeTab = $state<'login' | 'register'>(store.showAuthModal || 'login');
-  let email = $state('');
-  let username = $state('');
-  let password = $state('');
-  let errorMessage = $state('');
+  let activeTab = $state<"login" | "register">(store.showAuthModal || "login");
+  let email = $state("");
+  let name = $state("");
+  let password = $state("");
+  let errorMessage = $state("");
   let isLoading = $state(false);
 
   function handleKeydown(event: KeyboardEvent) {
-    if (event.key === 'Escape') {
+    if (event.key === "Escape") {
       store.showAuthModal = null;
     }
   }
 
   async function handleSubmit(e: SubmitEvent) {
     e.preventDefault();
-    errorMessage = '';
+    errorMessage = "";
 
-    if (!email || !password || (activeTab === 'register' && !username)) {
-      errorMessage = 'please fill in all fields';
+    if (!email || !password || (activeTab === "register" && !name)) {
+      errorMessage = "please fill in all fields";
       return;
     }
 
     isLoading = true;
 
-    // Simulate short network latency
-    setTimeout(() => {
-      try {
-        if (activeTab === 'login') {
-          const response = simulateRequest(
-            'POST',
-            '/api/v1/login',
-            JSON.stringify({ email, password }),
-            [],
-            [],
-            'local'
-          );
-
-          if (response.status === 200) {
-            const data = JSON.parse(response.body);
-            store.login(data.user, data.token);
-          } else {
-            const data = JSON.parse(response.body);
-            errorMessage = data.message || 'invalid email or password';
-          }
-        } else {
-          const response = simulateRequest(
-            'POST',
-            '/api/v1/register',
-            JSON.stringify({ username, email, password }),
-            [],
-            [],
-            'local'
-          );
-
-          if (response.status === 201) {
-            const data = JSON.parse(response.body);
-            store.register(data.user, data.token);
-          } else {
-            const data = JSON.parse(response.body);
-            errorMessage = data.message || 'registration failed';
-          }
-        }
-      } catch (err) {
-        errorMessage = 'an unexpected error occurred';
-      } finally {
-        isLoading = false;
+    try {
+      if (activeTab === "login") {
+        const data = await login(email, password);
+        store.login(data.user, data.token);
+      } else {
+        const data = await register(name, email, password);
+        store.register(data.user, data.token);
       }
-    }, 600);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        errorMessage = err.message.toLowerCase();
+      } else {
+        errorMessage = "an unexpected error occurred";
+      }
+    } finally {
+      isLoading = false;
+    }
   }
 </script>
 
@@ -80,27 +53,33 @@
 <div class="modal-backdrop">
   <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
   <!-- svelte-ignore a11y_click_events_have_key_events -->
-  <form 
-    class="modal-card bauhaus-card" 
+  <form
+    class="modal-card bauhaus-card"
     onsubmit={handleSubmit}
     onclick={(e) => e.stopPropagation()}
   >
     <div class="modal-header-accent"></div>
-    
+
     <div class="modal-body">
       <!-- Tabs header -->
       <div class="tabs-header">
         <button
           type="button"
           class="tab-btn {activeTab === 'login' ? 'active' : ''}"
-          onclick={() => { activeTab = 'login'; errorMessage = ''; }}
+          onclick={() => {
+            activeTab = "login";
+            errorMessage = "";
+          }}
         >
           login
         </button>
         <button
           type="button"
           class="tab-btn {activeTab === 'register' ? 'active' : ''}"
-          onclick={() => { activeTab = 'register'; errorMessage = ''; }}
+          onclick={() => {
+            activeTab = "register";
+            errorMessage = "";
+          }}
         >
           register
         </button>
@@ -114,12 +93,12 @@
           </div>
         {/if}
 
-        {#if activeTab === 'register'}
+        {#if activeTab === "register"}
           <div class="field-wrapper">
             <Input
-              label="username"
+              label="name"
               type="text"
-              bind:value={username}
+              bind:value={name}
               placeholder="e.g. bauhaus_dev"
               disabled={isLoading}
             />
@@ -150,19 +129,15 @@
 
     <!-- Footer actions -->
     <div class="modal-footer">
-      <Button 
-        variant="outline" 
+      <Button
+        variant="outline"
         disabled={isLoading}
-        onclick={() => store.showAuthModal = null}
+        onclick={() => (store.showAuthModal = null)}
       >
         cancel
       </Button>
-      <Button 
-        type="submit" 
-        variant="primary" 
-        disabled={isLoading}
-      >
-        {isLoading ? 'processing...' : activeTab}
+      <Button type="submit" variant="primary" disabled={isLoading}>
+        {isLoading ? "processing..." : activeTab}
       </Button>
     </div>
   </form>
@@ -220,7 +195,9 @@
     font-size: 0.95rem;
     cursor: pointer;
     text-transform: lowercase;
-    transition: background-color 0.1s ease, color 0.1s ease;
+    transition:
+      background-color 0.1s ease,
+      color 0.1s ease;
   }
 
   .tab-btn:first-child {

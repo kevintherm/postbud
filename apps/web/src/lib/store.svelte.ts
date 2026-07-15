@@ -1,6 +1,7 @@
 import { simulateRequest } from './mockEngine';
 import { generateId } from './utils';
 import { defaultCollections, defaultEnvironments } from './mockData';
+import { getMe, API_BASE } from './api';
 import type { HeaderOrParam, EnvironmentVariable, Environment, RequestItem, CollectionItem, HistoryItem, ResponseState, User } from './types';
 export type { HeaderOrParam, EnvironmentVariable, Environment, RequestItem, CollectionItem, HistoryItem, ResponseState, User };
 
@@ -305,64 +306,54 @@ export class ApiClientStore {
     }));
 
     if (this.routingMode === 'proxy') {
-      // Build Headers object
-      const headersInit: Record<string, string> = {};
-      resolvedHeaders.forEach((h: HeaderOrParam) => {
-        if (h.enabled && h.key) {
-          headersInit[h.key] = h.value;
-        }
-      });
+      const headersPayload = resolvedHeaders
+        .filter((h: HeaderOrParam) => h.enabled && h.key)
+        .map((h: HeaderOrParam) => ({ key: h.key, value: h.value, enabled: true }));
 
-      // Build Query params
+      // Build query string
       let finalUrl = resolvedUrl;
       const enabledParams = resolvedQueryParams.filter((q: HeaderOrParam) => q.enabled && q.key);
       if (enabledParams.length > 0) {
         const searchParams = new URLSearchParams();
-        enabledParams.forEach((p: HeaderOrParam) => {
-          searchParams.append(p.key, p.value);
-        });
-        const separator = finalUrl.includes('?') ? '&' : '?';
-        finalUrl += separator + searchParams.toString();
+        enabledParams.forEach((p: HeaderOrParam) => searchParams.append(p.key, p.value));
+        finalUrl += (finalUrl.includes('?') ? '&' : '?') + searchParams.toString();
       }
 
-      // Build request init options
-      const options: RequestInit = {
-        method: this.activeRequest.method,
-        headers: headersInit
-      };
-
-      if (this.activeRequest.method !== 'GET' && resolvedBody) {
-        options.body = resolvedBody;
-      }
-
-      fetch(finalUrl, options)
+      fetch(`${API_BASE}/api/proxy`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: finalUrl,
+          method: this.activeRequest.method,
+          headers: headersPayload,
+          body: this.activeRequest.method !== 'GET' ? resolvedBody : '',
+        }),
+      })
         .then(async (res) => {
           const endTime = Date.now();
           const duration = endTime - startTime;
-          const text = await res.text();
-          
-          const sizeBytes = new Blob([text]).size;
-          const sizeFormatted = sizeBytes > 1024 
-            ? (sizeBytes / 1024).toFixed(2) + ' KB' 
-            : sizeBytes + ' B';
+          const envelope = await res.json() as {
+            status: number; statusText: string;
+            headers: { key: string; value: string }[];
+            body: string;
+          };
 
-          // Format response headers as array of key/value pairs
-          const respHeadersArr: { key: string; value: string }[] = [];
-          res.headers.forEach((val, key) => {
-            respHeadersArr.push({ key, value: val });
-          });
+          const text = envelope.body ?? '';
+          const sizeBytes = new Blob([text]).size;
+          const sizeFormatted = sizeBytes > 1024
+            ? (sizeBytes / 1024).toFixed(2) + ' KB'
+            : sizeBytes + ' B';
 
           this.responseState = {
             loading: false,
-            status: res.status,
-            statusText: res.statusText || (res.ok ? 'OK' : 'Error'),
+            status: envelope.status,
+            statusText: envelope.statusText,
             time: duration,
             size: sizeFormatted,
-            headers: respHeadersArr,
+            headers: envelope.headers ?? [],
             body: text
           };
 
-          // Add to history
           const now = new Date();
           const timeStr = now.toTimeString().split(' ')[0];
           this.history = [
@@ -370,16 +361,14 @@ export class ApiClientStore {
               id: generateId(),
               method: this.activeRequest.method,
               url: this.activeRequest.url,
-              status: res.status,
+              status: envelope.status,
               time: duration,
               timestamp: timeStr
             },
             ...this.history
           ];
-          
-          setTimeout(() => {
-            this.syncStatus = 'synced';
-          }, 800);
+
+          setTimeout(() => { this.syncStatus = 'synced'; }, 800);
         })
         .catch(err => {
           const endTime = Date.now();
@@ -413,8 +402,8 @@ export class ApiClientStore {
         );
 
         const sizeBytes = new Blob([simResponse.body]).size;
-        const sizeFormatted = sizeBytes > 1024 
-          ? (sizeBytes / 1024).toFixed(2) + ' KB' 
+        const sizeFormatted = sizeBytes > 1024
+          ? (sizeBytes / 1024).toFixed(2) + ' KB'
           : sizeBytes + ' B';
 
         // Update response state
@@ -431,7 +420,7 @@ export class ApiClientStore {
         // Add to history
         const now = new Date();
         const timeStr = now.toTimeString().split(' ')[0];
-        
+
         this.history = [
           {
             id: generateId(),
@@ -479,9 +468,9 @@ export class ApiClientStore {
     this.showProfileModal = false;
   }
 
-  updateProfile(username: string, email: string, syncEnabled: boolean) {
+  updateProfile(name: string, email: string, syncEnabled: boolean) {
     if (this.currentUser) {
-      this.currentUser.username = username;
+      this.currentUser.name = name;
       this.currentUser.email = email;
       this.currentUser.sync_enabled = syncEnabled;
       localStorage.setItem('pb_user', JSON.stringify(this.currentUser));
@@ -492,7 +481,31 @@ export class ApiClientStore {
     this.sidebarCollapsed = !this.sidebarCollapsed;
     localStorage.setItem('pb_sidebar_collapsed', String(this.sidebarCollapsed));
   }
+
+  /**
+   * On startup, verify and re-hydrate the stored user from the backend.
+   * Called once after the store is created. Silently clears stale credentials
+   * if the token has expired or the user no longer exists.
+   */
+  async init(): Promise<void> {
+    const token = typeof localStorage !== 'undefined' ? localStorage.getItem('pb_token') : null;
+    if (!token) return;
+
+    try {
+      const user = await getMe();
+      this.currentUser = user;
+      localStorage.setItem('pb_user', JSON.stringify(user));
+    } catch {
+      // Token invalid or server unreachable — clear stale state silently.
+      this.currentUser = null;
+      localStorage.removeItem('pb_user');
+      localStorage.removeItem('pb_token');
+    }
+  }
 }
 
 // Export single instance of the store to share across components
 export const store = new ApiClientStore();
+
+// Hydrate user state from backend if a token is already stored.
+store.init();

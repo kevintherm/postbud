@@ -95,7 +95,7 @@ export const defaultEnvironments: Environment[] = [
     id: 'env-local',
     name: 'local',
     variables: [
-      { id: 'v1', key: 'base_url', value: 'http://localhost:8000', enabled: true },
+      { id: 'v1', key: 'base_url', value: 'http://localhost:8001', enabled: true },
       { id: 'v2', key: 'auth_token', value: 'jwt.eyJ1c2VySWQiOjQyLCJleHAiOjE3ODMzMDk2MDB9.postbud', enabled: true }
     ]
   },

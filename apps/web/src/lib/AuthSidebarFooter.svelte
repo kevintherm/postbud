@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { store } from './store.svelte';
-  import Button from './components/Button.svelte';
+  import { store } from "./store.svelte";
+  import Button from "./components/Button.svelte";
 
-  // Choose a color for the avatar based on user id or username
+  // Choose a color for the avatar based on user id or name
   function getAvatarColorClass(userId: number): string {
-    const colors = ['bg-yellow', 'bg-blue', 'bg-red'];
-    return colors[userId % colors.length] || 'bg-black';
+    const colors = ["bg-yellow", "bg-blue", "bg-red"];
+    return colors[userId % colors.length] || "bg-black";
   }
 </script>
 
@@ -13,14 +13,14 @@
   {#if store.currentUser}
     <div class="profile-card">
       <div class="avatar {getAvatarColorClass(store.currentUser.id)}">
-        {store.currentUser.username.substring(0, 1).toLowerCase()}
+        {store.currentUser.name.substring(0, 1).toLowerCase()}
       </div>
       <div class="user-info">
-        <span class="username">{store.currentUser.username.toLowerCase()}</span>
-        <button 
-          type="button" 
-          class="profile-btn" 
-          onclick={() => store.showProfileModal = true}
+        <span class="name">{store.currentUser.name.toLowerCase()}</span>
+        <button
+          type="button"
+          class="profile-btn"
+          onclick={() => (store.showProfileModal = true)}
         >
           [profile]
         </button>
@@ -28,10 +28,10 @@
     </div>
   {:else}
     <div class="w-full">
-      <Button 
-        variant="yellow" 
-        class="w-full-btn" 
-        onclick={() => store.showAuthModal = 'login'}
+      <Button
+        variant="yellow"
+        class="w-full-btn"
+        onclick={() => (store.showAuthModal = "login")}
       >
         login / register
       </Button>
@@ -95,7 +95,7 @@
     align-items: flex-start;
   }
 
-  .username {
+  .name {
     font-family: var(--font-display);
     font-weight: 700;
     font-size: 0.95rem;

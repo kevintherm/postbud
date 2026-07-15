@@ -1,0 +1,4 @@
+storage/
+bin/
+.php-cs-fixer.cache
+database/database.sqlite

@@ -6,7 +6,7 @@ namespace App\Database\Providers;
 
 use DI\ContainerBuilder;
 use Doctrine\DBAL\DriverManager;
-use Doctrine\Migrations\Configuration\Connection\ExistingConnection;
+use Doctrine\Migrations\Configuration\EntityManager\ExistingEntityManager;
 use Doctrine\Migrations\Configuration\Migration\ConfigurationArray;
 use Doctrine\Migrations\DependencyFactory;
 use Doctrine\Migrations\MigratorConfiguration;
@@ -86,8 +86,7 @@ final class DatabaseServiceProvider implements ServiceProvider
                     'transactional' => true,
                 ]);
 
-                $connection = $entityManager->getConnection();
-                return DependencyFactory::fromConnection($migrationsConfig, new ExistingConnection($connection));
+                return DependencyFactory::fromEntityManager($migrationsConfig, new ExistingEntityManager($entityManager));
             },
         ]);
     }

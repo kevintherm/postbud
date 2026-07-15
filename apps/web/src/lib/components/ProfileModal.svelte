@@ -1,19 +1,19 @@
 <script lang="ts">
-  import { store } from '../store.svelte';
-  import { simulateRequest } from '../mockEngine';
-  import Input from './Input.svelte';
-  import Button from './Button.svelte';
+  import { store } from "../store.svelte";
+  import { updateUser, ApiError } from "../api";
+  import Input from "./Input.svelte";
+  import Button from "./Button.svelte";
 
   // Local form state
-  let username = $state(store.currentUser?.username || '');
-  let email = $state(store.currentUser?.email || '');
+  let name = $state(store.currentUser?.name || "");
+  let email = $state(store.currentUser?.email || "");
   let syncEnabled = $state(store.currentUser?.sync_enabled ?? true);
-  let errorMessage = $state('');
-  let successMessage = $state('');
+  let errorMessage = $state("");
+  let successMessage = $state("");
   let isLoading = $state(false);
 
   function handleKeydown(event: KeyboardEvent) {
-    if (event.key === 'Escape') {
+    if (event.key === "Escape") {
       store.showProfileModal = false;
     }
   }
@@ -24,41 +24,38 @@
 
   async function handleSave(e: SubmitEvent) {
     e.preventDefault();
-    errorMessage = '';
-    successMessage = '';
+    errorMessage = "";
+    successMessage = "";
 
-    if (!username || !email) {
-      errorMessage = 'please fill in username and email';
+    if (!name || !email) {
+      errorMessage = "please fill in name and email";
+      return;
+    }
+
+    if (!store.currentUser) {
+      errorMessage = "no authenticated user found";
       return;
     }
 
     isLoading = true;
 
-    // Simulate short network latency
-    setTimeout(() => {
-      try {
-        const response = simulateRequest(
-          'PUT',
-          `/api/v1/users/${store.currentUser?.id || 42}`,
-          JSON.stringify({ username, email, sync_enabled: syncEnabled }),
-          [],
-          [],
-          'local'
-        );
-
-        if (response.status === 200) {
-          store.updateProfile(username, email, syncEnabled);
-          successMessage = 'profile updated successfully';
-        } else {
-          const data = JSON.parse(response.body);
-          errorMessage = data.message || 'failed to update profile';
-        }
-      } catch (err) {
-        errorMessage = 'failed to save changes';
-      } finally {
-        isLoading = false;
+    try {
+      await updateUser(store.currentUser.id, {
+        name: name,
+        email,
+        sync_enabled: syncEnabled,
+      });
+      store.updateProfile(name, email, syncEnabled);
+      successMessage = "profile updated successfully";
+    } catch (err) {
+      if (err instanceof ApiError) {
+        errorMessage = err.message.toLowerCase();
+      } else {
+        errorMessage = "failed to save changes";
       }
-    }, 600);
+    } finally {
+      isLoading = false;
+    }
   }
 </script>
 
@@ -67,20 +64,20 @@
 <div class="modal-backdrop">
   <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
   <!-- svelte-ignore a11y_click_events_have_key_events -->
-  <form 
-    class="modal-card bauhaus-card" 
+  <form
+    class="modal-card bauhaus-card"
     onsubmit={handleSave}
     onclick={(e) => e.stopPropagation()}
   >
     <div class="modal-header-accent"></div>
-    
+
     <div class="modal-content-split">
       <!-- Left Column: User details summary (Bauhaus Asymmetrical element) -->
       <div class="info-sidebar">
         <div class="sidebar-header">
           <span class="label-text">account info</span>
         </div>
-        
+
         <div class="info-details font-body">
           <div class="info-group">
             <span class="info-label font-display">user ID</span>
@@ -89,13 +86,17 @@
 
           <div class="info-group">
             <span class="info-label font-display">role</span>
-            <span class="info-val badge-role">{store.currentUser?.role || 'user'}</span>
+            <span class="info-val badge-role"
+              >{store.currentUser?.role || "user"}</span
+            >
           </div>
 
           <div class="info-group">
             <span class="info-label font-display">created</span>
             <span class="info-val">
-              {store.currentUser?.created_at ? new Date(store.currentUser.created_at).toLocaleDateString() : 'N/A'}
+              {store.currentUser?.created_at
+                ? new Date(store.currentUser.created_at).toLocaleDateString()
+                : "N/A"}
             </span>
           </div>
         </div>
@@ -130,10 +131,10 @@
         <div class="fields-section">
           <div class="field-wrapper">
             <Input
-              label="username"
+              label="name"
               type="text"
-              bind:value={username}
-              placeholder="username"
+              bind:value={name}
+              placeholder="name"
               disabled={isLoading}
             />
           </div>
@@ -150,15 +151,17 @@
 
           <!-- Custom Bauhaus checkbox row -->
           <label class="checkbox-row">
-            <input 
-              type="checkbox" 
-              bind:checked={syncEnabled} 
+            <input
+              type="checkbox"
+              bind:checked={syncEnabled}
               disabled={isLoading}
               class="bauhaus-checkbox"
             />
             <div class="checkbox-label font-body">
               <span class="checkbox-title font-display">enable cloud sync</span>
-              <span class="checkbox-desc">automatically backup and sync request collections in real time</span>
+              <span class="checkbox-desc"
+                >automatically backup and sync request collections in real time</span
+              >
             </div>
           </label>
         </div>
@@ -167,19 +170,15 @@
 
     <!-- Modal actions footer -->
     <div class="modal-footer">
-      <Button 
-        variant="outline" 
-        disabled={isLoading} 
-        onclick={() => store.showProfileModal = false}
+      <Button
+        variant="outline"
+        disabled={isLoading}
+        onclick={() => (store.showProfileModal = false)}
       >
         close
       </Button>
-      <Button 
-        type="submit" 
-        variant="primary" 
-        disabled={isLoading}
-      >
-        {isLoading ? 'saving...' : 'save changes'}
+      <Button type="submit" variant="primary" disabled={isLoading}>
+        {isLoading ? "saving..." : "save changes"}
       </Button>
     </div>
   </form>
@@ -380,8 +379,6 @@
     background-color: var(--bauhaus-red);
   }
 
-
-
   .success-banner {
     background-color: rgba(34, 85, 214, 0.1);
     border: 2px solid var(--bauhaus-blue);
@@ -390,8 +387,6 @@
   .success-dot {
     background-color: var(--bauhaus-blue);
   }
-
-
 
   /* Modal Footer */
   .modal-footer {

@@ -35,7 +35,7 @@ export function simulateRequest(
         user: {
           id: 42,
           email: 'user@example.com',
-          username: 'bauhaus_dev',
+          name: 'bauhaus_dev',
           role: 'admin',
           sync_enabled: true,
           created_at: '2026-07-15T00:00:00Z'
@@ -61,7 +61,7 @@ export function simulateRequest(
           user: {
             id: 42,
             email: parsed.email || 'user@example.com',
-            username: parsed.username || 'new_user',
+            name: parsed.name || 'new_user',
             role: 'user',
             sync_enabled: true,
             created_at: new Date().toISOString()
@@ -89,7 +89,7 @@ export function simulateRequest(
     bodyData = {
       id: 42,
       email: 'user@example.com',
-      username: 'bauhaus_dev',
+      name: 'bauhaus_dev',
       sync_enabled: true
     };
   } else if (urlPath.includes('/users')) {
