@@ -4,87 +4,123 @@ export const defaultCollections: CollectionItem[] = [
   {
     id: 'col-auth',
     name: 'auth api',
-    requests: [
+    items: [
       {
-        id: 'req-login',
-        name: 'login user',
-        method: 'POST',
-        url: '/api/v1/login',
-        headers: [
-          { id: 'h1', key: 'Content-Type', value: 'application/json', enabled: true }
-        ],
-        queryParams: [],
-        body: '{\n  "email": "user@example.com",\n  "password": "password123"\n}',
-        bodyType: 'json'
+        type: 'request',
+        request: {
+          id: 'req-login',
+          name: 'login user',
+          method: 'POST',
+          url: '/api/v1/login',
+          headers: [
+            { id: 'h1', key: 'Content-Type', value: 'application/json', enabled: true }
+          ],
+          queryParams: [],
+          body: '{\n  "email": "user@example.com",\n  "password": "password123"\n}',
+          bodyType: 'json'
+        }
       },
       {
-        id: 'req-me',
-        name: 'get current user',
-        method: 'GET',
-        url: '/api/v1/me',
-        headers: [
-          { id: 'h2', key: 'Authorization', value: 'Bearer jwt.token.here', enabled: true }
-        ],
-        queryParams: [],
-        body: '',
-        bodyType: 'none'
+        type: 'folder',
+        folder: {
+          id: 'folder-auth-tokens',
+          name: 'tokens',
+          items: [
+            {
+              type: 'request',
+              request: {
+                id: 'req-me',
+                name: 'get current user',
+                method: 'GET',
+                url: '/api/v1/me',
+                headers: [
+                  { id: 'h2', key: 'Authorization', value: 'Bearer jwt.token.here', enabled: true }
+                ],
+                queryParams: [],
+                body: '',
+                bodyType: 'none'
+              }
+            }
+          ]
+        }
       }
     ]
   },
   {
     id: 'col-users',
     name: 'users api',
-    requests: [
+    items: [
       {
-        id: 'req-users-list',
-        name: 'list users',
-        method: 'GET',
-        url: '/api/v1/users',
-        headers: [],
-        queryParams: [
-          { id: 'p1', key: 'limit', value: '10', enabled: true },
-          { id: 'p2', key: 'offset', value: '0', enabled: true }
-        ],
-        body: '',
-        bodyType: 'none'
+        type: 'request',
+        request: {
+          id: 'req-users-list',
+          name: 'list users',
+          method: 'GET',
+          url: '/api/v1/users',
+          headers: [],
+          queryParams: [
+            { id: 'p1', key: 'limit', value: '10', enabled: true },
+            { id: 'p2', key: 'offset', value: '0', enabled: true }
+          ],
+          body: '',
+          bodyType: 'none'
+        }
       },
       {
-        id: 'req-user-update',
-        name: 'update user profile',
-        method: 'PUT',
-        url: '/api/v1/users/42',
-        headers: [
-          { id: 'h3', key: 'Content-Type', value: 'application/json', enabled: true }
-        ],
-        queryParams: [],
-        body: '{\n  "name": "walter gropius",\n  "role": "director"\n}',
-        bodyType: 'json'
+        type: 'request',
+        request: {
+          id: 'req-user-update',
+          name: 'update user profile',
+          method: 'PUT',
+          url: '/api/v1/users/42',
+          headers: [
+            { id: 'h3', key: 'Content-Type', value: 'application/json', enabled: true }
+          ],
+          queryParams: [],
+          body: '{\n  "name": "walter gropius",\n  "role": "director"\n}',
+          bodyType: 'json'
+        }
       }
     ]
   },
   {
     id: 'col-debug',
     name: 'debug api',
-    requests: [
+    items: [
       {
-        id: 'req-err-500',
-        name: 'trigger 500 error',
-        method: 'GET',
-        url: '/api/v1/error/500',
-        headers: [],
-        queryParams: [],
-        body: '',
-        bodyType: 'none'
-      },
-      {
-        id: 'req-err-400',
-        name: 'trigger 400 error',
-        method: 'GET',
-        url: '/api/v1/error/400',
-        headers: [],
-        queryParams: [],
-        body: '',
-        bodyType: 'none'
+        type: 'folder',
+        folder: {
+          id: 'folder-errors',
+          name: 'error scenarios',
+          items: [
+            {
+              type: 'request',
+              request: {
+                id: 'req-err-500',
+                name: 'trigger 500 error',
+                method: 'GET',
+                url: '/api/v1/error/500',
+                headers: [],
+                queryParams: [],
+                body: '',
+                bodyType: 'none'
+              }
+            },
+            {
+              type: 'request',
+              request: {
+                id: 'req-err-400',
+                name: 'trigger 400 error',
+                method: 'GET',
+                url: '/api/v1/error/400',
+                headers: [],
+                queryParams: [],
+                body: '',
+                bodyType: 'none'
+              }
+            }
+          ]
+        }
       }
     ]
   }

@@ -1,4 +1,5 @@
 import { store } from './store.svelte';
+import { collectAllRequestIds } from './itemUtils';
 
 class RequestNavigation {
   expandedCollections = $state<Record<string, boolean>>({
@@ -7,12 +8,22 @@ class RequestNavigation {
     'col-debug': true
   });
 
-  // Check if a request ID exists in the collections
+  expandedFolders = $state<Record<string, boolean>>({
+    'folder-auth-tokens': true,
+    'folder-errors': true
+  });
+
+  toggleFolder(folderId: string) {
+    this.expandedFolders[folderId] = !this.expandedFolders[folderId];
+  }
+
+  isFolderExpanded(folderId: string): boolean {
+    return this.expandedFolders[folderId] !== false;
+  }
+
   existsInCollections(requestId: string | null | undefined): boolean {
     if (!requestId) return false;
-    return store.collections.some((c) =>
-      c.requests.some((r) => r.id === requestId)
-    );
+    return collectAllRequestIds(store.collections).includes(requestId);
   }
 }
 

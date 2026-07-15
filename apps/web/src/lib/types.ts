@@ -29,10 +29,20 @@ export interface RequestItem {
   bodyType: 'json' | 'raw' | 'none';
 }
 
+export interface FolderItem {
+  id: string;
+  name: string;
+  items: SidebarItem[];
+}
+
+export type SidebarItem =
+  | { type: 'request'; request: RequestItem }
+  | { type: 'folder'; folder: FolderItem };
+
 export interface CollectionItem {
   id: string;
   name: string;
-  requests: RequestItem[];
+  items: SidebarItem[];
 }
 
 export interface HistoryItem {

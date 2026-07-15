@@ -1,13 +1,13 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { store } from '../store.svelte';
   import Input from './Input.svelte';
   import Button from './Button.svelte';
 
-  let { requestId, initialName, onclose } = $props<{
-    requestId: string;
+  let { initialName, onsave, onclose, title = 'rename' } = $props<{
     initialName: string;
+    onsave: (name: string) => void;
     onclose: () => void;
+    title?: string;
   }>();
 
   let newName = $state('');
@@ -22,15 +22,13 @@
   });
 
   function handleKeydown(event: KeyboardEvent) {
-    if (event.key === 'Escape') {
-      onclose();
-    }
+    if (event.key === 'Escape') onclose();
   }
 
   function handleSave(e: SubmitEvent | MouseEvent) {
     if (e) e.preventDefault();
     if (newName.trim()) {
-      store.renameRequest(requestId, newName.trim());
+      onsave(newName.trim());
       onclose();
     }
   }
@@ -43,19 +41,19 @@
 <div class="modal-backdrop" onclick={onclose}>
   <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
   <!-- svelte-ignore a11y_click_events_have_key_events -->
-  <form 
-    class="modal-card bauhaus-card" 
+  <form
+    class="modal-card bauhaus-card"
     onsubmit={handleSave}
     onclick={(e) => e.stopPropagation()}
   >
     <div class="modal-header-accent"></div>
-    
+
     <div class="modal-body">
-      <h3 class="modal-title">rename request</h3>
-      
+      <h3 class="modal-title">{title}</h3>
+
       <div class="field-wrapper">
         <Input
-          label="request name"
+          label="name"
           type="text"
           bind:value={newName}
           placeholder="e.g. get profiles"
@@ -64,21 +62,9 @@
       </div>
     </div>
 
-    <!-- Footer actions -->
     <div class="modal-footer">
-      <Button 
-        variant="outline" 
-        onclick={onclose}
-      >
-        cancel
-      </Button>
-      <Button 
-        type="submit" 
-        variant="primary"
-        disabled={!newName.trim()}
-      >
-        rename
-      </Button>
+      <Button variant="outline" onclick={onclose}>cancel</Button>
+      <Button type="submit" variant="primary" disabled={!newName.trim()}>save</Button>
     </div>
   </form>
 </div>
@@ -133,7 +119,6 @@
     width: 100%;
   }
 
-  /* Modal Footer */
   .modal-footer {
     padding: 16px 24px;
     border-top: 2px solid var(--bauhaus-black);

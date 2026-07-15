@@ -9,11 +9,13 @@
   import RenameRequestModal from "./lib/components/RenameRequestModal.svelte";
   import { store } from "./lib/store.svelte";
   import { requestNav } from "./lib/navigation.svelte";
+  import { findRequestNameInCollections } from "./lib/itemUtils";
   import { untrack } from "svelte";
 
   let showSplash = $state(true);
   let renameTargetId = $state<string | null>(null);
   let renameTargetInitialName = $state('');
+  let renameIsFolder = $state(false);
 
   function handleBeforeUnload(event: BeforeUnloadEvent) {
     event.preventDefault();
@@ -37,65 +39,69 @@
       renameTargetId !== null;
     if (isModalOpen) return;
 
-    // Target request ID: focused item in sidebar if present, otherwise active request
     const activeEl = document.activeElement;
-    let targetId = store.activeRequest?.id;
-    if (activeEl && activeEl.classList.contains("request-item")) {
-      targetId = activeEl.getAttribute("data-request-id") || targetId;
+    let targetId: string | null = null;
+    let isFolder = false;
+
+    if (activeEl) {
+      const reqId = activeEl.getAttribute("data-request-id");
+      if (reqId) {
+        targetId = reqId;
+      } else {
+        const folderId = activeEl.getAttribute("data-folder-id");
+        if (folderId) {
+          targetId = folderId;
+          isFolder = true;
+        }
+      }
     }
 
-    // Duplicate: Ctrl+D
-    if (event.ctrlKey && event.key.toLowerCase() === "d") {
+    if (!targetId && store.activeRequest) {
+      targetId = store.activeRequest.id;
+    }
+
+    if (!targetId) return;
+
+    // Duplicate: Ctrl+D (requests only)
+    if (event.ctrlKey && event.key.toLowerCase() === "d" && !isFolder) {
       if (requestNav.existsInCollections(targetId)) {
         event.preventDefault();
         store.duplicateRequest(targetId);
       }
     }
     // Rename: F2 or Alt+R
-    else if (
-      event.key === "F2" ||
-      (event.altKey && event.key.toLowerCase() === "r")
-    ) {
-      if (requestNav.existsInCollections(targetId)) {
-        event.preventDefault();
-        let targetName = "";
-        for (const col of store.collections) {
-          const req = col.requests.find((r) => r.id === targetId);
-          if (req) {
-            targetName = req.name;
-            break;
-          }
-        }
-        if (targetId && targetName) {
-          renameTargetId = targetId;
-          renameTargetInitialName = targetName;
-        }
+    else if (event.key === "F2" || (event.altKey && event.key.toLowerCase() === "r")) {
+      event.preventDefault();
+      if (isFolder) {
+        renameIsFolder = true;
+        renameTargetId = targetId;
+        renameTargetInitialName = activeEl?.getAttribute("data-folder-name") || "folder";
+      } else if (requestNav.existsInCollections(targetId)) {
+        renameIsFolder = false;
+        renameTargetId = targetId;
+        renameTargetInitialName = findRequestNameInCollections(store.collections, targetId);
       }
     }
     // Delete: Delete or Alt+Backspace
-    else if (
-      event.key === "Delete" ||
-      (event.altKey && event.key === "Backspace")
-    ) {
-      if (requestNav.existsInCollections(targetId)) {
+    else if (event.key === "Delete" || (event.altKey && event.key === "Backspace")) {
+      if (isFolder) {
         event.preventDefault();
-        let targetName = "";
-        for (const col of store.collections) {
-          const req = col.requests.find((r) => r.id === targetId);
-          if (req) {
-            targetName = req.name;
-            break;
-          }
+        const name = activeEl?.getAttribute("data-folder-name") || "folder";
+        if (confirm(`delete folder "${name}"?`)) {
+          store.deleteFolder(targetId!);
         }
-        if (targetId && targetName && confirm(`delete request "${targetName}"?`)) {
-          store.deleteRequest(targetId);
+      } else if (requestNav.existsInCollections(targetId)) {
+        event.preventDefault();
+        const name = findRequestNameInCollections(store.collections, targetId);
+        if (name && confirm(`delete request "${name}"?`)) {
+          store.deleteRequest(targetId!);
         }
       }
     }
-    // Navigate requests: ArrowUp / ArrowDown
+    // Navigate items: ArrowUp / ArrowDown
     else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
       const items = Array.from(
-        document.querySelectorAll(".collections-list .request-item")
+        document.querySelectorAll(".request-item, .folder-header")
       ) as HTMLButtonElement[];
       if (items.length > 0) {
         event.preventDefault();
@@ -193,11 +199,18 @@
   <ProfileModal />
 {/if}
 
-<!-- Rename Request Modal -->
+<!-- Rename Request / Folder Modal -->
 {#if renameTargetId}
   <RenameRequestModal
-    requestId={renameTargetId}
+    title={renameIsFolder ? 'rename folder' : 'rename request'}
     initialName={renameTargetInitialName}
+    onsave={(name) => {
+      if (renameIsFolder) {
+        store.renameFolder(renameTargetId!, name);
+      } else {
+        store.renameRequest(renameTargetId!, name);
+      }
+    }}
     onclose={() => { renameTargetId = null; }}
   />
 {/if}
