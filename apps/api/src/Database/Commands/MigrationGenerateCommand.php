@@ -7,6 +7,8 @@ namespace App\Database\Commands;
 use Doctrine\Migrations\DependencyFactory;
 use Override;
 use Stout\Console\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 final class MigrationGenerateCommand extends Command
 {
@@ -26,7 +28,7 @@ final class MigrationGenerateCommand extends Command
      * @psalm-suppress InternalMethod
      */
     #[Override]
-    public function execute(array $args): int
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         /** @var DependencyFactory $dependencyFactory */
         $dependencyFactory = $this->container->get(DependencyFactory::class);
@@ -39,18 +41,18 @@ final class MigrationGenerateCommand extends Command
             $namespace = key($migrationPaths);
 
             if ($namespace === null) {
-                fwrite(STDERR, "Error: No migration directories configured.\n");
+                $output->writeln("<error>Error: No migration directories configured.</error>");
                 return 1;
             }
 
             $fqcn = $classNameGenerator->generateClassName($namespace);
             $path = $migrationGenerator->generateMigration($fqcn);
 
-            echo "Generated new migration class: {$fqcn}\n";
-            echo "Path: {$path}\n";
+            $output->writeln("Generated new migration class: {$fqcn}");
+            $output->writeln("Path: {$path}");
             return 0;
         } catch (\Throwable $e) {
-            fwrite(STDERR, "Error generating migration: " . $e->getMessage() . "\n");
+            $output->writeln("<error>Error generating migration: " . $e->getMessage() . "</error>");
             return 1;
         }
     }

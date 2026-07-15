@@ -24,6 +24,10 @@ $app = new Application(
     ]
 );
 
+$app->config()->loadGroup('app', [
+    'name' => 'postal boy'
+]);
+
 $app->http()->routes(function (Router $router) {
     $router->get('/', fn () => 'Hello World');
     $router->get('/api/openapi.json', [OpenApiController::class, 'generate']);

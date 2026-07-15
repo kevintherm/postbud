@@ -3,7 +3,7 @@
   "description": "PHP REST API Backend (Vanilla)",
   "type": "project",
   "require": {
-    "stout/stout": "*",
+    "stout/stout": "^0.1",
     "doctrine/orm": "^3.6",
     "doctrine/migrations": "^3.9",
     "symfony/cache": "^7.0",

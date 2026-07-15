@@ -12,6 +12,7 @@ use Monolog\Logger;
 use Override;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
+use Stout\Config\Config;
 use Stout\Support\ServiceProvider;
 
 final class LoggingServiceProvider implements ServiceProvider
@@ -20,13 +21,13 @@ final class LoggingServiceProvider implements ServiceProvider
     public function register(ContainerBuilder $builder): void
     {
         $builder->addDefinitions([
-            LoggerInterface::class => function () {
+            LoggerInterface::class => function (Config $cfg) {
                 $logDir = dirname(__DIR__, 3) . '/storage/logs';
                 if (!is_dir($logDir)) {
                     mkdir($logDir, 0755, true);
                 }
 
-                $logger = new Logger('postbud');
+                $logger = new Logger($cfg->get('app.name', 'App'));
 
                 $logger->pushHandler(new StreamHandler('php://stderr', Level::Debug));
                 $logger->pushHandler(new RotatingFileHandler($logDir . '/app.log', 7, Level::Debug));

@@ -8,6 +8,8 @@ use Doctrine\Migrations\DependencyFactory;
 use Doctrine\Migrations\MigratorConfiguration;
 use Override;
 use Stout\Console\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 final class MigrateCommand extends Command
 {
@@ -28,7 +30,7 @@ final class MigrateCommand extends Command
      * @psalm-suppress InternalClass
      */
     #[Override]
-    public function execute(array $args): int
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         /** @var DependencyFactory $dependencyFactory */
         $dependencyFactory = $this->container->get(DependencyFactory::class);
@@ -41,17 +43,17 @@ final class MigrateCommand extends Command
             $plan = $planCalculator->getPlanUntilVersion($aliasResolver->resolveVersionAlias('latest'));
 
             if (count($plan) === 0) {
-                echo "No pending migrations to run.\n";
+                $output->writeln("No pending migrations to run.");
                 return 0;
             }
 
-            echo "Running " . count($plan) . " migrations...\n";
+            $output->writeln("Running " . count($plan) . " migrations...");
             $migratorConfiguration = new MigratorConfiguration();
             $migrator->migrate($plan, $migratorConfiguration);
-            echo "Migrations completed successfully!\n";
+            $output->writeln("<info>Migrations completed successfully!</info>");
             return 0;
         } catch (\Throwable $e) {
-            fwrite(STDERR, "Error running migrations: " . $e->getMessage() . "\n");
+            $output->writeln("<error>Error running migrations: " . $e->getMessage() . "</error>");
             return 1;
         }
     }

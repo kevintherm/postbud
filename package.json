@@ -8,6 +8,9 @@
     "web:dev": "bun --filter web dev",
     "web:build": "bun --filter web build",
     "api:serve": "cd apps/api && php app.php serve",
+    "api:format": "cd apps/api && vendor/bin/php-cs-fixer fix",
+    "api:lint": "cd apps/api && vendor/bin/php-cs-fixer fix --dry-run --diff",
+    "api:composer": "cd apps/api && composer",
     "dev": "bun run --parallel web:dev api:serve"
   }
 }

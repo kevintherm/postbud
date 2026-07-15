@@ -12,3 +12,8 @@ declare(strict_types=1);
 */
 
 // uses(\PHPUnit\Framework\TestCase::class)->in('Unit', 'Feature');
+
+if (file_exists(__DIR__ . '/../vendor/stout/stout/tests/Pest.php')) {
+    require_once __DIR__ . '/../vendor/stout/stout/tests/Pest.php';
+}
+
