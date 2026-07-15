@@ -1,5 +1,6 @@
 <script lang="ts">
   import { store } from './store.svelte';
+  import { requestNav } from './navigation.svelte';
   import Select from './components/Select.svelte';
   import HistorySection from './components/HistorySection.svelte';
   import AuthSidebarFooter from './AuthSidebarFooter.svelte';
@@ -10,13 +11,6 @@
   // Section expansion states
   let collectionsExpanded = $state(true);
 
-  // State to track which collections are collapsed/expanded
-  let expandedCollections = $state<Record<string, boolean>>({
-    'col-auth': true,
-    'col-users': true,
-    'col-debug': true
-  });
-
   // Context Menu state
   let contextMenuVisible = $state(false);
   let contextMenuX = $state(0);
@@ -26,7 +20,7 @@
   let showRenameModal = $state(false);
 
   function toggleCollection(id: string) {
-    expandedCollections[id] = !expandedCollections[id];
+    requestNav.expandedCollections[id] = !requestNav.expandedCollections[id];
   }
 
   function handleRequestContextMenu(e: MouseEvent, req: RequestItem) {
@@ -95,11 +89,11 @@
                 class="folder-header" 
                 onclick={() => toggleCollection(col.id)}
               >
-                <span class="folder-icon">{expandedCollections[col.id] ? '▼' : '▶'}</span>
+                <span class="folder-icon">{requestNav.expandedCollections[col.id] ? '▼' : '▶'}</span>
                 <span class="folder-name">{col.name}</span>
               </button>
               
-              {#if expandedCollections[col.id]}
+              {#if requestNav.expandedCollections[col.id]}
                 <div class="folder-contents">
                   {#if col.requests.length === 0}
                     <div class="empty-text">no requests</div>
@@ -108,6 +102,7 @@
                     <button
                       type="button"
                       class="request-item {store.activeRequest.id === req.id ? 'active' : ''}"
+                      data-request-id={req.id}
                       onclick={() => store.loadRequest(req)}
                       oncontextmenu={(e) => handleRequestContextMenu(e, req)}
                     >
@@ -324,6 +319,17 @@
     background-color: var(--bauhaus-grid-bg);
     border-color: var(--bauhaus-black);
     font-weight: 700;
+  }
+
+  .request-item:focus {
+    outline: none;
+  }
+
+  .request-item:focus-visible {
+    background-color: var(--bauhaus-grid-bg);
+    border-color: var(--bauhaus-black);
+    outline: 2px dashed var(--bauhaus-blue);
+    outline-offset: -2px;
   }
 
   /* HTTP Badges */

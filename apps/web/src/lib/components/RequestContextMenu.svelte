@@ -49,6 +49,7 @@
   tabindex="-1"
   style="top: {posY}px; left: {posX}px;"
   onclick={(e) => e.stopPropagation()}
+  oncontextmenu={(e) => { e.preventDefault(); e.stopPropagation(); }}
 >
   <button
     type="button"
@@ -56,7 +57,7 @@
     onclick={() => { onduplicate(); onclose(); }}
   >
     <span class="label">duplicate</span>
-    <span class="shortcut">alt+d</span>
+    <span class="shortcut">ctrl+d</span>
   </button>
   <button
     type="button"

@@ -8,10 +8,12 @@
   import ProfileModal from "./lib/components/ProfileModal.svelte";
   import RenameRequestModal from "./lib/components/RenameRequestModal.svelte";
   import { store } from "./lib/store.svelte";
+  import { requestNav } from "./lib/navigation.svelte";
   import { untrack } from "svelte";
 
   let showSplash = $state(true);
-  let showActiveRenameModal = $state(false);
+  let renameTargetId = $state<string | null>(null);
+  let renameTargetInitialName = $state('');
 
   function handleBeforeUnload(event: BeforeUnloadEvent) {
     event.preventDefault();
@@ -22,36 +24,89 @@
     const target = event.target as HTMLElement;
     if (!target) return false;
     const name = target.tagName.toUpperCase();
-    return name === "INPUT" || name === "TEXTAREA" || target.isContentEditable;
+    return name === "INPUT" || name === "TEXTAREA" || name === "SELECT" || target.isContentEditable;
   }
 
   function handleGlobalKeydown(event: KeyboardEvent) {
     if (isTyping(event)) return;
 
-    // Duplicate: Alt+D or Ctrl+D (prevent default for Ctrl+D so it doesn't open bookmark)
-    if (
-      (event.altKey && event.key.toLowerCase() === "d") ||
-      (event.ctrlKey && event.key.toLowerCase() === "d")
-    ) {
-      event.preventDefault();
-      store.duplicateRequest(store.activeRequest.id);
+    const isModalOpen =
+      store.showEnvironmentsModal ||
+      store.showAuthModal ||
+      store.showProfileModal ||
+      renameTargetId !== null;
+    if (isModalOpen) return;
+
+    // Target request ID: focused item in sidebar if present, otherwise active request
+    const activeEl = document.activeElement;
+    let targetId = store.activeRequest?.id;
+    if (activeEl && activeEl.classList.contains("request-item")) {
+      targetId = activeEl.getAttribute("data-request-id") || targetId;
+    }
+
+    // Duplicate: Ctrl+D
+    if (event.ctrlKey && event.key.toLowerCase() === "d") {
+      if (requestNav.existsInCollections(targetId)) {
+        event.preventDefault();
+        store.duplicateRequest(targetId);
+      }
     }
     // Rename: F2 or Alt+R
     else if (
       event.key === "F2" ||
       (event.altKey && event.key.toLowerCase() === "r")
     ) {
-      event.preventDefault();
-      showActiveRenameModal = true;
+      if (requestNav.existsInCollections(targetId)) {
+        event.preventDefault();
+        let targetName = "";
+        for (const col of store.collections) {
+          const req = col.requests.find((r) => r.id === targetId);
+          if (req) {
+            targetName = req.name;
+            break;
+          }
+        }
+        if (targetId && targetName) {
+          renameTargetId = targetId;
+          renameTargetInitialName = targetName;
+        }
+      }
     }
     // Delete: Delete or Alt+Backspace
     else if (
       event.key === "Delete" ||
       (event.altKey && event.key === "Backspace")
     ) {
-      event.preventDefault();
-      if (confirm(`delete request "${store.activeRequest.name}"?`)) {
-        store.deleteRequest(store.activeRequest.id);
+      if (requestNav.existsInCollections(targetId)) {
+        event.preventDefault();
+        let targetName = "";
+        for (const col of store.collections) {
+          const req = col.requests.find((r) => r.id === targetId);
+          if (req) {
+            targetName = req.name;
+            break;
+          }
+        }
+        if (targetId && targetName && confirm(`delete request "${targetName}"?`)) {
+          store.deleteRequest(targetId);
+        }
+      }
+    }
+    // Navigate requests: ArrowUp / ArrowDown
+    else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+      const items = Array.from(
+        document.querySelectorAll(".collections-list .request-item")
+      ) as HTMLButtonElement[];
+      if (items.length > 0) {
+        event.preventDefault();
+        const currentIndex = items.indexOf(document.activeElement as HTMLButtonElement);
+        let nextIndex = 0;
+        if (event.key === "ArrowUp") {
+          nextIndex = currentIndex === -1 ? items.length - 1 : (currentIndex - 1 + items.length) % items.length;
+        } else {
+          nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % items.length;
+        }
+        items[nextIndex]?.focus();
       }
     }
   }
@@ -139,11 +194,11 @@
 {/if}
 
 <!-- Rename Request Modal -->
-{#if showActiveRenameModal}
+{#if renameTargetId}
   <RenameRequestModal
-    requestId={store.activeRequest.id}
-    initialName={store.activeRequest.name}
-    onclose={() => (showActiveRenameModal = false)}
+    requestId={renameTargetId}
+    initialName={renameTargetInitialName}
+    onclose={() => { renameTargetId = null; }}
   />
 {/if}
 
