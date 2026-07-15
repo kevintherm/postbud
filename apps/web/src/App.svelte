@@ -9,7 +9,14 @@
   import { store } from './lib/store.svelte';
 
   let showSplash = $state(true);
+
+  function handleBeforeUnload(event: BeforeUnloadEvent) {
+    event.preventDefault();
+    event.returnValue = '';
+  }
 </script>
+
+<svelte:window onbeforeunload={handleBeforeUnload} />
 
 <!-- Animated Splash Screen on Load -->
 {#if showSplash}
