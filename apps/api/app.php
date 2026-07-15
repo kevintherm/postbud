@@ -25,7 +25,7 @@ $app = new Application(
 );
 
 $app->config()->loadGroup('app', [
-    'name' => 'postal boy'
+    'name' => 'postbud'
 ]);
 
 $app->http()->routes(function (Router $router) {

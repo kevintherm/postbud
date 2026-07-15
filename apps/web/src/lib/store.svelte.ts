@@ -56,6 +56,16 @@ export interface ResponseState {
   body: string | null;
 }
 
+export interface User {
+  id: number;
+  email: string;
+  username: string;
+  role: string;
+  sync_enabled: boolean;
+  created_at: string;
+}
+
+
 // Simple unique ID helper
 function generateId(): string {
   return Math.random().toString(36).substring(2, 9);
@@ -307,6 +317,17 @@ export class ApiClientStore {
 
   syncStatus = $state<'synced' | 'syncing' | 'offline'>('synced');
   showEnvironmentsModal = $state<boolean>(false);
+  showAuthModal = $state<'login' | 'register' | null>(null);
+  showProfileModal = $state<boolean>(false);
+  sidebarCollapsed = $state<boolean>(
+    typeof localStorage !== 'undefined' && localStorage.getItem('pb_sidebar_collapsed') === 'true'
+  );
+  currentUser = $state<User | null>(
+    (typeof localStorage !== 'undefined' && localStorage.getItem('pb_user'))
+      ? JSON.parse(localStorage.getItem('pb_user')!)
+      : null
+  );
+
 
   // Load a request from a collection or history into the editor
   loadRequest(request: RequestItem | Omit<RequestItem, 'name'>) {
@@ -427,6 +448,41 @@ export class ApiClientStore {
   // Clear all request logs in history
   clearHistory() {
     this.history = [];
+  }
+
+  login(user: User, token: string) {
+    this.currentUser = user;
+    localStorage.setItem('pb_user', JSON.stringify(user));
+    localStorage.setItem('pb_token', token);
+    this.showAuthModal = null;
+  }
+
+  register(user: User, token: string) {
+    this.currentUser = user;
+    localStorage.setItem('pb_user', JSON.stringify(user));
+    localStorage.setItem('pb_token', token);
+    this.showAuthModal = null;
+  }
+
+  logout() {
+    this.currentUser = null;
+    localStorage.removeItem('pb_user');
+    localStorage.removeItem('pb_token');
+    this.showProfileModal = false;
+  }
+
+  updateProfile(username: string, email: string, syncEnabled: boolean) {
+    if (this.currentUser) {
+      this.currentUser.username = username;
+      this.currentUser.email = email;
+      this.currentUser.sync_enabled = syncEnabled;
+      localStorage.setItem('pb_user', JSON.stringify(this.currentUser));
+    }
+  }
+
+  toggleSidebar() {
+    this.sidebarCollapsed = !this.sidebarCollapsed;
+    localStorage.setItem('pb_sidebar_collapsed', String(this.sidebarCollapsed));
   }
 }
 

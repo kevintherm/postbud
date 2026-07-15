@@ -202,7 +202,7 @@
 
   .action-bar {
     display: flex;
-    padding: 16px;
+    padding: 16px 16px 16px 36px;
     gap: 12px;
     align-items: flex-end;
   }

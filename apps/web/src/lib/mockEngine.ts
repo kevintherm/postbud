@@ -35,7 +35,9 @@ export function simulateRequest(
         user: {
           id: 42,
           email: 'user@example.com',
+          username: 'bauhaus_dev',
           role: 'admin',
+          sync_enabled: true,
           created_at: '2026-07-15T00:00:00Z'
         }
       };
@@ -45,6 +47,40 @@ export function simulateRequest(
       bodyData = {
         error: 'Method Not Allowed',
         message: `The endpoint /api/v1/login does not support ${method}. Use POST.`
+      };
+    }
+  } else if (urlPath.includes('/register')) {
+    if (method === 'POST') {
+      try {
+        const parsed = JSON.parse(body || '{}');
+        status = 201;
+        statusText = 'Created';
+        bodyData = {
+          status: 'success',
+          token: 'jwt.eyJ1c2VySWQiOjQyLCJleHAiOjE3ODMzMDk2MDB9.postbud',
+          user: {
+            id: 42,
+            email: parsed.email || 'user@example.com',
+            username: parsed.username || 'new_user',
+            role: 'user',
+            sync_enabled: true,
+            created_at: new Date().toISOString()
+          }
+        };
+      } catch (e) {
+        status = 400;
+        statusText = 'Bad Request';
+        bodyData = {
+          error: 'Bad Request',
+          message: 'Invalid registration payload.'
+        };
+      }
+    } else {
+      status = 405;
+      statusText = 'Method Not Allowed';
+      bodyData = {
+        error: 'Method Not Allowed',
+        message: `The endpoint /api/v1/register does not support ${method}. Use POST.`
       };
     }
   } else if (urlPath.includes('/me')) {

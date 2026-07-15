@@ -1,10 +1,11 @@
 <script lang="ts">
   import { store } from './store.svelte';
   import Select from './components/Select.svelte';
+  import HistorySection from './components/HistorySection.svelte';
+  import AuthSidebarFooter from './AuthSidebarFooter.svelte';
 
   // Section expansion states
   let collectionsExpanded = $state(true);
-  let historyExpanded = $state(true);
 
   // State to track which collections are collapsed/expanded
   let expandedCollections = $state<Record<string, boolean>>({
@@ -29,7 +30,7 @@
   }
 </script>
 
-<aside class="sidebar panel">
+<aside class="sidebar panel {store.sidebarCollapsed ? 'collapsed' : ''}">
   <!-- Top Environment selector (without Sync status bar) -->
   <div class="sidebar-header">
     <div class="env-row-header">
@@ -100,63 +101,11 @@
     </div>
 
     <!-- History Section -->
-    <div class="section-wrapper {historyExpanded ? 'expanded' : 'collapsed'}">
-      <div class="collapsible-header history-header-wrapper">
-        <button 
-          type="button" 
-          class="history-toggle-btn" 
-          onclick={() => historyExpanded = !historyExpanded}
-        >
-          <span>history {historyExpanded ? '▼' : '▶'}</span>
-        </button>
-        {#if historyExpanded && store.history.length > 0}
-          <button 
-            type="button" 
-            class="history-clear-btn" 
-            onclick={(e) => { e.stopPropagation(); store.clearHistory(); }}
-          >
-            clear
-          </button>
-        {/if}
-      </div>
-
-      <div class="section-content">
-        <div class="history-list">
-          {#if store.history.length === 0}
-            <div class="empty-text">no history logs</div>
-          {/if}
-          {#each store.history as log}
-            <button
-              type="button"
-              class="history-item"
-              onclick={() => store.loadRequest({
-                id: '',
-                name: `${log.method.toLowerCase()} request`,
-                method: log.method as any,
-                url: log.url,
-                headers: [],
-                queryParams: [],
-                body: '',
-                bodyType: 'none'
-              })}
-            >
-              <div class="history-row-top">
-                <span class="method-badge {getMethodColorClass(log.method)}">{log.method}</span>
-                <span class="history-url">{log.url}</span>
-              </div>
-              <div class="history-row-bottom">
-                <span class="status-pill status-{log.status >= 500 ? 'red' : log.status >= 400 ? 'yellow' : 'blue'}">
-                  {log.status}
-                </span>
-                <span class="history-time">{log.time}ms</span>
-                <span class="history-timestamp">{log.timestamp}</span>
-              </div>
-            </button>
-          {/each}
-        </div>
-      </div>
-    </div>
+    <HistorySection />
   </div>
+
+  <!-- Auth Footer -->
+  <AuthSidebarFooter />
 </aside>
 
 <style>
@@ -167,6 +116,11 @@
     flex-direction: column;
     height: 100%;
     overflow: hidden;
+    transition: border-right-color 0.2s ease;
+  }
+
+  .sidebar.collapsed {
+    border-right-color: transparent;
   }
 
   .sidebar-header {
@@ -249,49 +203,7 @@
     background-color: #E0A500;
   }
 
-  .history-header-wrapper {
-    background-color: var(--bauhaus-blue);
-    color: var(--bauhaus-white);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
 
-  .history-toggle-btn {
-    background: none;
-    border: none;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    padding: 0;
-    font-family: inherit;
-    font-weight: inherit;
-    font-size: inherit;
-    color: inherit;
-    text-transform: inherit;
-    cursor: pointer;
-    text-align: left;
-  }
-
-  .history-clear-btn {
-    background-color: var(--bauhaus-white);
-    border: 2px solid var(--bauhaus-black);
-    color: var(--bauhaus-black);
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 0.75rem;
-    padding: 2px 8px;
-    cursor: pointer;
-    text-transform: lowercase;
-    margin-left: 12px;
-    white-space: nowrap;
-  }
-
-  .history-clear-btn:hover {
-    background-color: var(--bauhaus-red);
-    color: var(--bauhaus-white);
-  }
 
   .section-content {
     padding: 16px;
@@ -413,82 +325,5 @@
     text-transform: lowercase;
   }
 
-  .history-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
 
-  .history-item {
-    background: var(--bauhaus-white);
-    border: 2px solid var(--bauhaus-black);
-    padding: 8px;
-    text-align: left;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    width: 100%;
-  }
-
-  .history-item:hover {
-    background-color: var(--bauhaus-grid-bg);
-  }
-
-  .history-row-top {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .history-url {
-    font-family: var(--font-body);
-    font-size: 0.8rem;
-    word-break: break-all;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    text-transform: lowercase;
-    flex: 1;
-  }
-
-  .history-row-bottom {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 0.75rem;
-    font-family: var(--font-display);
-    font-weight: 700;
-  }
-
-  .status-pill {
-    padding: 1px 6px;
-    border: 1px solid var(--bauhaus-black);
-    font-weight: bold;
-  }
-
-  .status-blue {
-    background-color: var(--bauhaus-blue);
-    color: var(--bauhaus-white);
-  }
-
-  .status-yellow {
-    background-color: var(--bauhaus-yellow);
-    color: var(--bauhaus-black);
-  }
-
-  .status-red {
-    background-color: var(--bauhaus-red);
-    color: var(--bauhaus-white);
-  }
-
-  .history-time {
-    color: #555;
-    font-family: var(--font-body);
-  }
-
-  .history-timestamp {
-    color: #8A8A85;
-    font-family: var(--font-body);
-  }
 </style>
