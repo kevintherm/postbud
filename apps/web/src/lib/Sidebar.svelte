@@ -8,9 +8,10 @@
   import FolderContextMenu from './components/FolderContextMenu.svelte';
   import RenameRequestModal from './components/RenameRequestModal.svelte';
   import CollectionFolder from './components/CollectionFolder.svelte';
+  import TopLevelRequests from './components/TopLevelRequests.svelte';
   import type { SidebarItem, FolderItem, RequestItem } from './types';
 
-  let collectionsExpanded = $state(true);
+  let workspaceExpanded = $state(true);
 
   // ── Request context menu ──
   let requestCtxVisible = $state(false);
@@ -114,16 +115,22 @@
   </div>
 
   <div class="sidebar-body">
-    <div class="section-wrapper {collectionsExpanded ? 'expanded' : 'collapsed'}">
+    <div class="section-wrapper {workspaceExpanded ? 'expanded' : 'collapsed'}">
       <div class="collections-header-row">
         <button
           type="button"
-          class="collapsible-header collections-header"
-          onclick={() => collectionsExpanded = !collectionsExpanded}
+          class="collapsible-header workspace-header"
+          onclick={() => workspaceExpanded = !workspaceExpanded}
         >
-          <span>collections</span>
-          <span>{collectionsExpanded ? '▼' : '▶'}</span>
+          <span>workspace</span>
+          <span>{workspaceExpanded ? '▼' : '▶'}</span>
         </button>
+        <button
+          type="button"
+          class="add-collection-btn"
+          title="new request"
+          onclick={() => store.addTopLevelReq()}
+        >+req</button>
         <button
           type="button"
           class="add-collection-btn"
@@ -132,12 +139,16 @@
             const name = prompt('collection name:');
             if (name) store.addCollection(name);
           }}
-        >+</button>
+        >+col</button>
       </div>
 
       <div class="section-content">
+        <!-- Top-level requests (not in any collection) -->
+        <TopLevelRequests onrequestcontextmenu={handleRequestContextMenu} />
+
+        <!-- Collections -->
         <!-- svelte-ignore a11y_no_static_element_interactions -->
-        <div class="collections-list" oncontextmenu={(e) => e.preventDefault()}>
+        <div class="collections-list" class:has-top-level={store.topLevelRequests.length > 0} oncontextmenu={(e) => e.preventDefault()}>
           {#each store.collections as col}
             <div class="collection-folder">
               <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -283,20 +294,16 @@
   .sidebar.collapsed {
     border-right-color: transparent;
   }
-
   .sidebar-header {
     padding: 16px;
     background-color: var(--bauhaus-white);
   }
-
   .env-row-header {
     display: flex;
     align-items: flex-end;
     gap: 12px;
   }
-
   .env-section { flex: 1; }
-
   .env-edit-btn {
     background: none;
     border: none;
@@ -310,22 +317,18 @@
     text-decoration: underline;
     white-space: nowrap;
   }
-
   .env-edit-btn:hover { color: var(--bauhaus-blue); }
-
   .sidebar-body {
     flex: 1;
     display: flex;
     flex-direction: column;
     overflow: hidden;
   }
-
   .section-wrapper {
     display: flex;
     flex-direction: column;
     overflow: hidden;
   }
-
   .section-wrapper.expanded { flex: 1; }
   .section-wrapper.collapsed { flex: 0 0 auto; }
 
@@ -333,7 +336,6 @@
     display: flex;
     align-items: stretch;
   }
-
   .collapsible-header {
     border: none;
     border-top: 2px solid var(--bauhaus-black);
@@ -350,14 +352,11 @@
     text-align: left;
     flex: 1;
   }
-
-  .collections-header {
+  .workspace-header {
     background-color: var(--bauhaus-yellow);
     color: var(--bauhaus-black);
   }
-
-  .collections-header:hover { background-color: #E0A500; }
-
+  .workspace-header:hover { background-color: #E0A500; }
   .add-collection-btn {
     border: none;
     border-top: 2px solid var(--bauhaus-black);
@@ -374,26 +373,21 @@
     align-items: center;
     transition: background-color 0.1s ease;
   }
-
   .add-collection-btn:hover { background-color: var(--bauhaus-blue); color: var(--bauhaus-white); }
-
   .section-content {
     padding: 16px;
     flex: 1;
     overflow-y: auto;
     background-color: var(--bauhaus-white);
   }
-
   .section-wrapper.collapsed .section-content { display: none; }
-
+  .collections-list.has-top-level { margin-top: 12px; }
   .collection-folder { margin-bottom: 8px; }
-
   .collection-header-row {
     display: flex;
     align-items: center;
     gap: 4px;
   }
-
   .folder-header {
     background: none;
     border: none;
@@ -410,11 +404,8 @@
     cursor: pointer;
     color: var(--bauhaus-black);
   }
-
   .folder-header:hover { color: var(--bauhaus-blue); }
-
   .folder-icon { font-size: 0.75rem; }
-
   .collection-action-btn {
     background: none;
     border: 1px solid var(--bauhaus-black);
@@ -428,13 +419,11 @@
     transition: background-color 0.1s ease;
     flex-shrink: 0;
   }
-
   .collection-action-btn:hover {
     background-color: var(--bauhaus-blue);
     color: var(--bauhaus-white);
     border-color: var(--bauhaus-blue);
   }
-
   .folder-contents {
     padding-left: 12px;
     border-left: 2px dashed var(--bauhaus-black);
@@ -444,7 +433,6 @@
     gap: 4px;
     margin-top: 2px;
   }
-
   .context-menu {
     position: fixed;
     z-index: 1000;
@@ -454,7 +442,6 @@
     display: flex;
     flex-direction: column;
   }
-
   .menu-item {
     background: none;
     border: none;
@@ -471,7 +458,6 @@
     text-transform: lowercase;
     transition: background-color 0.1s ease;
   }
-
   .menu-item:last-child { border-bottom: none; }
   .menu-item:hover { background-color: var(--bauhaus-yellow); color: var(--bauhaus-black); }
   .menu-item.item-delete:hover { background-color: var(--bauhaus-red); color: var(--bauhaus-white); }

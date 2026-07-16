@@ -9,7 +9,7 @@
   import RenameRequestModal from "./lib/components/RenameRequestModal.svelte";
   import { store } from "./lib/store.svelte";
   import { requestNav } from "./lib/navigation.svelte";
-  import { findRequestNameInCollections } from "./lib/itemUtils";
+  import { findRequestName } from "./lib/itemUtils";
   import { untrack } from "svelte";
 
   let showSplash = $state(true);
@@ -79,7 +79,7 @@
       } else if (requestNav.existsInCollections(targetId)) {
         renameIsFolder = false;
         renameTargetId = targetId;
-        renameTargetInitialName = findRequestNameInCollections(store.collections, targetId);
+        renameTargetInitialName = findRequestName(store.topLevelRequests, store.collections, targetId);
       }
     }
     // Delete: Delete or Alt+Backspace
@@ -92,7 +92,7 @@
         }
       } else if (requestNav.existsInCollections(targetId)) {
         event.preventDefault();
-        const name = findRequestNameInCollections(store.collections, targetId);
+        const name = findRequestName(store.topLevelRequests, store.collections, targetId);
         if (name && confirm(`delete request "${name}"?`)) {
           store.deleteRequest(targetId!);
         }

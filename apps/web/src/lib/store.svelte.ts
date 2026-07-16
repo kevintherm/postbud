@@ -9,15 +9,10 @@ import {
   requestExistsInCollections,
 } from './itemUtils';
 import type {
-  HeaderOrParam, EnvironmentVariable, Environment,
+  HeaderOrParam, Environment,
   RequestItem, CollectionItem, FolderItem, SidebarItem,
   HistoryItem, ResponseState, User
 } from './types';
-export type {
-  HeaderOrParam, EnvironmentVariable, Environment,
-  RequestItem, CollectionItem, FolderItem, SidebarItem,
-  HistoryItem, ResponseState, User
-};
 
 function makeRequest(name: string): RequestItem {
   return {
@@ -34,79 +29,13 @@ function makeRequest(name: string): RequestItem {
 
 export class ApiClientStore {
   collections = $state<CollectionItem[]>([]);
+  topLevelRequests = $state<RequestItem[]>([]);
   environments = $state<Environment[]>([
-    {
-      id: 'env-local',
-      name: 'local',
-      variables: [
-        { id: 'v1', key: 'base_url', value: 'http://localhost', enabled: true },
-      ]
-    }
+    { id: 'env-local', name: 'local', variables: [
+      { id: 'v1', key: 'base_url', value: 'http://localhost', enabled: true },
+    ]}
   ]);
   activeEnvironmentId = $state<string>('env-local');
-
-  get activeEnvironment(): Environment | undefined {
-    return this.environments.find(e => e.id === this.activeEnvironmentId);
-  }
-
-  addEnvironment(name: string) {
-    if (name.trim()) {
-      this.environments = [
-        ...this.environments,
-        {
-          id: 'env-' + generateId(),
-          name: name.trim(),
-          variables: []
-        }
-      ];
-    }
-  }
-
-  updateEnvironment(id: string, newName: string) {
-    if (newName.trim()) {
-      const env = this.environments.find(e => e.id === id);
-      if (env) env.name = newName.trim();
-    }
-  }
-
-  deleteEnvironment(id: string) {
-    if (this.environments.length > 1) {
-      this.environments = this.environments.filter(e => e.id !== id);
-      if (this.activeEnvironmentId === id) {
-        this.activeEnvironmentId = this.environments[0].id;
-      }
-    }
-  }
-
-  addVariable(envId: string) {
-    const env = this.environments.find(e => e.id === envId);
-    if (env) {
-      env.variables = [
-        ...env.variables,
-        { id: 'var-' + generateId(), key: '', value: '', enabled: true }
-      ];
-    }
-  }
-
-  deleteVariable(envId: string, varId: string) {
-    const env = this.environments.find(e => e.id === envId);
-    if (env) {
-      env.variables = env.variables.filter(v => v.id !== varId);
-    }
-  }
-
-  resolveVariables(text: string): string {
-    if (!text) return text;
-    const active = this.activeEnvironment;
-    if (!active) return text;
-    let resolved = text;
-    for (const v of active.variables) {
-      if (v.enabled && v.key.trim()) {
-        resolved = resolved.replaceAll(`{{${v.key.trim()}}}`, v.value);
-      }
-    }
-    return resolved;
-  }
 
   history = $state<HistoryItem[]>([]);
 
@@ -142,6 +71,42 @@ export class ApiClientStore {
     (typeof localStorage !== 'undefined' && localStorage.getItem('pb_routing_mode') as 'static' | 'proxy') || 'static'
   );
 
+  // ── Environments ──
+
+  get activeEnvironment() { return this.environments.find(e => e.id === this.activeEnvironmentId); }
+
+  addEnv(n: string) { if (n.trim()) this.environments.push({ id: 'env-' + generateId(), name: n.trim(), variables: [] }); }
+
+  updEnv(id: string, n: string) {
+    const e = this.environments.find(e => e.id === id);
+    if (e && n.trim()) e.name = n.trim();
+  }
+
+  delEnv(id: string) {
+    if (this.environments.length <= 1) return;
+    const i = this.environments.findIndex(e => e.id === id);
+    if (i !== -1) this.environments.splice(i, 1);
+    if (this.activeEnvironmentId === id) this.activeEnvironmentId = this.environments[0].id;
+  }
+
+  addVar(eid: string) {
+    const e = this.environments.find(e => e.id === eid);
+    if (e) e.variables.push({ id: 'var-' + generateId(), key: '', value: '', enabled: true });
+  }
+
+  delVar(eid: string, vid: string) {
+    const e = this.environments.find(e => e.id === eid);
+    if (e) { const i = e.variables.findIndex(v => v.id === vid); if (i !== -1) e.variables.splice(i, 1); }
+  }
+
+  resolveVars(t: string): string {
+    if (!t) return t;
+    const a = this.activeEnvironment;
+    if (!a) return t;
+    let r = t;
+    for (const v of a.variables) { if (v.enabled && v.key.trim()) r = r.replaceAll(`{{${v.key.trim()}}}`, v.value); }
+    return r;
+  }
   // ── Collection CRUD ──
 
   addCollection(name: string) {
@@ -163,14 +128,13 @@ export class ApiClientStore {
     if (idx === -1) return;
     this.collections.splice(idx, 1);
     // Fallback active request if it was in the deleted collection
-    if (!requestExistsInCollections(this.collections, this.activeRequest.id)) {
+    if (!(this.topLevelRequests.some(r => r.id === this.activeRequest.id) || requestExistsInCollections(this.collections, this.activeRequest.id))) {
       const all = flattenRequests(this.collections.flatMap(c => c.items));
       if (all.length > 0) {
         this.loadRequest(all[0]);
       }
     }
   }
-
   // ── Request CRUD ──
 
   loadRequest(request: RequestItem | Omit<RequestItem, 'name'>) {
@@ -210,7 +174,42 @@ export class ApiClientStore {
     }
   }
 
+  addTopLevelReq() { const r = makeRequest('new request'); this.topLevelRequests.push(r); this.loadRequest(r); }
+
+  saveToCollection(collectionId: string, folderId?: string): boolean {
+    if (this.topLevelRequests.some(r => r.id === this.activeRequest.id) || requestExistsInCollections(this.collections, this.activeRequest.id)) {
+      return false;
+    }
+    const items = this._getTargetItems(collectionId, folderId);
+    if (!items) return false;
+    items.push({ type: 'request', request: this._snapshotRequest(this.activeRequest) });
+    return true;
+  }
+
+  saveAsTopLevel(): boolean {
+    if (this.topLevelRequests.some(r => r.id === this.activeRequest.id) || requestExistsInCollections(this.collections, this.activeRequest.id)) return false;
+    this.topLevelRequests.push(this._snapshotRequest(this.activeRequest));
+    return true;
+  }
+
   duplicateRequest(requestId: string) {
+    // Check top-level first
+    const topReq = this.topLevelRequests.find(r => r.id === requestId);
+    if (topReq) {
+      const clone: RequestItem = {
+        id: 'req-' + generateId(),
+        name: `${topReq.name} copy`,
+        method: topReq.method,
+        url: topReq.url,
+        headers: topReq.headers.map(h => ({ ...h, id: generateId() })),
+        queryParams: topReq.queryParams.map(q => ({ ...q, id: generateId() })),
+        body: topReq.body,
+        bodyType: topReq.bodyType
+      };
+      this.topLevelRequests.push(clone);
+      this.loadRequest(clone);
+      return;
+    }
     for (const col of this.collections) {
       const found = findRequestInItems(col.items, requestId);
       if (found) {
@@ -236,6 +235,15 @@ export class ApiClientStore {
   renameRequest(requestId: string, newName: string) {
     const trimmed = newName.trim();
     if (!trimmed) return;
+    // Check top-level first
+    const topReq = this.topLevelRequests.find(r => r.id === requestId);
+    if (topReq) {
+      topReq.name = trimmed;
+      if (this.activeRequest.id === requestId) {
+        this.activeRequest.name = trimmed;
+      }
+      return;
+    }
     for (const col of this.collections) {
       const found = findRequestInItems(col.items, requestId);
       if (found) {
@@ -252,6 +260,26 @@ export class ApiClientStore {
   }
 
   deleteRequest(requestId: string) {
+    // Check top-level first
+    const topIdx = this.topLevelRequests.findIndex(r => r.id === requestId);
+    if (topIdx !== -1) {
+      this.topLevelRequests.splice(topIdx, 1);
+      if (this.activeRequest.id === requestId) {
+        const all = [
+          ...this.topLevelRequests,
+          ...flattenRequests(this.collections.flatMap(c => c.items))
+        ];
+        if (all.length > 0) {
+          this.loadRequest(all[0]);
+        } else {
+          this.activeRequest = {
+            id: 'req-default', name: 'custom request', method: 'GET', url: '',
+            headers: [], queryParams: [], body: '', bodyType: 'none'
+          };
+        }
+      }
+      return;
+    }
     for (const col of this.collections) {
       const found = findRequestInItems(col.items, requestId);
       if (found) {
@@ -273,30 +301,22 @@ export class ApiClientStore {
   }
 
   saveActiveRequest() {
+    const topIdx = this.topLevelRequests.findIndex(r => r.id === this.activeRequest.id);
+    if (topIdx !== -1) {
+      this.topLevelRequests[topIdx] = this._snapshotRequest(this.activeRequest);
+      return;
+    }
     for (const col of this.collections) {
       const found = findRequestInItems(col.items, this.activeRequest.id);
-      if (found) {
-        const item = found.container[found.index];
-        if (item.type === 'request') {
-          found.container[found.index] = {
-            type: 'request',
-            request: {
-              id: this.activeRequest.id,
-              name: this.activeRequest.name,
-              method: this.activeRequest.method,
-              url: this.activeRequest.url,
-              headers: this.activeRequest.headers.map(h => ({ ...h })),
-              queryParams: this.activeRequest.queryParams.map(q => ({ ...q })),
-              body: this.activeRequest.body,
-              bodyType: this.activeRequest.bodyType
-            }
-          };
-        }
+      if (found && found.container[found.index].type === 'request') {
+        found.container[found.index] = {
+          type: 'request',
+          request: this._snapshotRequest(this.activeRequest)
+        };
         break;
       }
     }
   }
-
   // ── Folder CRUD ──
 
   addFolder(collectionId: string, parentFolderId?: string) {
@@ -335,16 +355,21 @@ export class ApiClientStore {
       }
     }
   }
-
   // ── Drag & Drop ──
 
   moveItem(itemId: string, targetCollectionId: string, targetFolderId?: string, insertIndex?: number) {
     let removed: SidebarItem | null = null;
 
-    // Remove from current location
-    for (const col of this.collections) {
-      removed = removeItemInPlace(col.items, itemId);
-      if (removed) break;
+    // Remove from current location (includes top-level)
+    const topReqIdx = this.topLevelRequests.findIndex(r => r.id === itemId);
+    if (topReqIdx !== -1) {
+      const req = this.topLevelRequests.splice(topReqIdx, 1)[0];
+      removed = { type: 'request', request: req };
+    } else {
+      for (const col of this.collections) {
+        removed = removeItemInPlace(col.items, itemId);
+        if (removed) break;
+      }
     }
     if (!removed) return;
 
@@ -358,7 +383,6 @@ export class ApiClientStore {
       }
     }
   }
-
   // ── Sending Requests ──
 
   sendRequest() {
@@ -366,13 +390,13 @@ export class ApiClientStore {
     this.responseState.loading = true;
     this.syncStatus = 'syncing';
 
-    const resolvedUrl = this.resolveVariables(this.activeRequest.url);
-    const resolvedBody = this.resolveVariables(this.activeRequest.body);
+    const resolvedUrl = this.resolveVars(this.activeRequest.url);
+    const resolvedBody = this.resolveVars(this.activeRequest.body);
     const resolvedHeaders = this.activeRequest.headers.map((h: HeaderOrParam) => ({
-      ...h, key: this.resolveVariables(h.key), value: this.resolveVariables(h.value)
+      ...h, key: this.resolveVars(h.key), value: this.resolveVars(h.value)
     }));
     const resolvedQueryParams = this.activeRequest.queryParams.map((q: HeaderOrParam) => ({
-      ...q, key: this.resolveVariables(q.key), value: this.resolveVariables(q.value)
+      ...q, key: this.resolveVars(q.key), value: this.resolveVars(q.value)
     }));
 
     const setResponse = (r: ResponseState) => { this.responseState = r; };
@@ -398,7 +422,6 @@ export class ApiClientStore {
   clearHistory() {
     this.history = [];
   }
-
   // ── Auth ──
 
   login(user: User, token: string) {
@@ -449,7 +472,6 @@ export class ApiClientStore {
       localStorage.removeItem('pb_token');
     }
   }
-
   // ── Internal Helpers ──
 
   private _getTargetItems(collectionId: string, folderId?: string): SidebarItem[] | null {
@@ -462,6 +484,15 @@ export class ApiClientStore {
       if (item.type === 'folder') return item.folder.items;
     }
     return null;
+  }
+
+  private _snapshotRequest(req: RequestItem): RequestItem {
+    return {
+      id: req.id, name: req.name, method: req.method, url: req.url,
+      headers: req.headers.map(h => ({ ...h })),
+      queryParams: req.queryParams.map(q => ({ ...q })),
+      body: req.body, bodyType: req.bodyType
+    };
   }
 }
 

@@ -16,7 +16,7 @@ class RequestNavigation {
 
   existsInCollections(requestId: string | null | undefined): boolean {
     if (!requestId) return false;
-    return collectAllRequestIds(store.collections).includes(requestId);
+    return store.topLevelRequests.some(r => r.id === requestId) || collectAllRequestIds(store.collections).includes(requestId);
   }
 }
 

@@ -116,6 +116,12 @@ export function findRequestNameInCollections(collections: CollectionItem[], requ
   return '';
 }
 
+export function findRequestName(topLevel: RequestItem[], collections: CollectionItem[], requestId: string): string {
+  const tr = topLevel.find(r => r.id === requestId);
+  if (tr) return tr.name;
+  return findRequestNameInCollections(collections, requestId);
+}
+
 export function collectAllRequestIds(collections: CollectionItem[]): string[] {
   const ids: string[] = [];
   for (const col of collections) {

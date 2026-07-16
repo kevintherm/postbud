@@ -4,8 +4,19 @@
   import Input from './components/Input.svelte';
   import Button from './components/Button.svelte';
   import JsonEditor from './components/JsonEditor.svelte';
+  import SaveRequestPicker from './components/SaveRequestPicker.svelte';
+  import { collectAllRequestIds } from './itemUtils';
 
   let activeTab = $state<'params' | 'headers' | 'body'>('params');
+  let showSavePicker = $state(false);
+  let saveRequestIsSaved = $derived(
+    store.topLevelRequests.some(r => r.id === store.activeRequest.id) ||
+    collectAllRequestIds(store.collections).includes(store.activeRequest.id)
+  );
+
+  function handleSavePickerClose() {
+    showSavePicker = false;
+  }
 
   const methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'];
   const bodyTypes = [
@@ -14,6 +25,11 @@
     { value: 'raw', label: 'raw text' }
   ];
 </script>
+
+<svelte:window
+  onclick={handleSavePickerClose}
+  onkeydown={(e) => { if (e.key === 'Escape') showSavePicker = false; }}
+/>
 
 <div class="request-pane panel">
   <!-- URL and Send Bar -->
@@ -55,6 +71,28 @@
         {/if}
       </Button>
     </div>
+
+    {#if saveRequestIsSaved}
+      <div class="save-btn-wrap">
+        <Button variant="outline" disabled>
+          saved
+        </Button>
+      </div>
+    {:else}
+      <div class="save-btn-wrap">
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <button
+          type="button"
+          class="save-btn"
+          onclick={(e) => { e.stopPropagation(); showSavePicker = !showSavePicker; }}
+        >
+          save to...
+        </button>
+        {#if showSavePicker}
+          <SaveRequestPicker onclose={handleSavePickerClose} />
+        {/if}
+      </div>
+    {/if}
   </div>
 
   <!-- Tab selectors -->
@@ -231,6 +269,35 @@
 
   .send-btn {
     width: 120px;
+  }
+
+  .save-btn-wrap {
+    position: relative;
+    width: 100px;
+  }
+
+  .save-btn {
+    background: none;
+    border: 2px solid var(--bauhaus-black);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: lowercase;
+    padding: 8px 12px;
+    cursor: pointer;
+    color: var(--bauhaus-black);
+    background-color: var(--bauhaus-white);
+    width: 100%;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.1s ease, color 0.1s ease;
+  }
+
+  .save-btn:hover {
+    background-color: var(--bauhaus-blue);
+    color: var(--bauhaus-white);
   }
 
   /* Tabs styling */

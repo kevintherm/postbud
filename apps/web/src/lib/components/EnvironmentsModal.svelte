@@ -11,7 +11,7 @@
   );
 
   function handleAdd() {
-    store.addEnvironment('new env');
+    store.addEnv('new env');
     // Select the newly added environment
     const newEnv = store.environments[store.environments.length - 1];
     if (newEnv) {
@@ -27,7 +27,7 @@
 
   function handleDeleteEnv(id: string, event: Event) {
     event.stopPropagation();
-    store.deleteEnvironment(id);
+    store.delEnv(id);
     if (selectedEnvId === id) {
       selectedEnvId = store.environments[0]?.id || '';
     }
@@ -127,7 +127,7 @@
                       <button
                         type="button"
                         class="var-delete-btn"
-                        onclick={() => store.deleteVariable(selectedEnv.id, variable.id)}
+                        onclick={() => store.delVar(selectedEnv.id, variable.id)}
                         title="delete variable"
                       >
                         ✕
@@ -143,7 +143,7 @@
             </div>
             
             <div class="editor-footer">
-              <Button variant="yellow" size="sm" onclick={() => store.addVariable(selectedEnv.id)}>
+              <Button variant="yellow" size="sm" onclick={() => store.addVar(selectedEnv.id)}>
                 + add variable
               </Button>
             </div>
