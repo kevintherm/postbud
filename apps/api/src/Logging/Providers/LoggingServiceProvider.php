@@ -21,10 +21,10 @@ final class LoggingServiceProvider implements ServiceProvider
     public function register(ContainerBuilder $builder): void
     {
         $builder->addDefinitions([
-            LoggerInterface::class => function (Config $cfg) {
+            LoggerInterface::class => static function (Config $cfg) {
                 $logDir = dirname(__DIR__, 3) . '/storage/logs';
                 if (!is_dir($logDir)) {
-                    mkdir($logDir, 0755, true);
+                    mkdir($logDir, 0o755, true);
                 }
 
                 $logger = new Logger($cfg->get('app.name', 'App'));

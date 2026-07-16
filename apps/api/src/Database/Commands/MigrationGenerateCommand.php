@@ -41,7 +41,7 @@ final class MigrationGenerateCommand extends Command
             $namespace = key($migrationPaths);
 
             if ($namespace === null) {
-                $output->writeln("<error>Error: No migration directories configured.</error>");
+                $output->writeln('<error>Error: No migration directories configured.</error>');
                 return 1;
             }
 
@@ -52,7 +52,7 @@ final class MigrationGenerateCommand extends Command
             $output->writeln("Path: {$path}");
             return 0;
         } catch (\Throwable $e) {
-            $output->writeln("<error>Error generating migration: " . $e->getMessage() . "</error>");
+            $output->writeln('<error>Error generating migration: ' . $e->getMessage() . '</error>');
             return 1;
         }
     }

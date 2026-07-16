@@ -7,10 +7,10 @@ namespace App\User\Controllers;
 use App\User\DTOs\LoginDto;
 use App\User\DTOs\RegisterDto;
 use App\User\DTOs\UpdateUserDto;
+use App\User\Exceptions\ForbiddenException;
+use App\User\Exceptions\InvalidCredentialsException;
 use App\User\Models\User;
 use App\User\Services\AuthService;
-use App\User\Exceptions\InvalidCredentialsException;
-use App\User\Exceptions\ForbiddenException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use InvalidArgumentException;
 use OpenApi\Attributes as OA;
@@ -24,8 +24,9 @@ final class UserController
      * @psalm-suppress PossiblyUnusedMethod
      */
     public function __construct(
-        private readonly AuthService $authService
-    ) {}
+        private readonly AuthService $authService,
+    ) {
+    }
 
     /**
      * @psalm-suppress PossiblyUnusedMethod
@@ -42,7 +43,11 @@ final class UserController
 
             $result = $this->authService->register($dto);
 
-            return $response->json(['status' => 'created', 'token' => $result['token'], 'user' => $result['user']], 201);
+            return $response->json([
+                'status' => 'created',
+                'token' => $result['token'],
+                'user' => $result['user'],
+            ], 201);
         } catch (InvalidArgumentException $e) {
             return $response->json(['error' => 'Validation failed', 'message' => $e->getMessage()], 422);
         } catch (UniqueConstraintViolationException $e) {
@@ -94,7 +99,7 @@ final class UserController
         $_ = $request;
         $users = $this->authService->listUsers();
 
-        return $response->json(array_map(fn (User $u) => $u->jsonSerialize(), $users));
+        return $response->json(array_map(static fn (User $u) => $u->jsonSerialize(), $users));
     }
 
     /**
@@ -103,7 +108,7 @@ final class UserController
      */
     #[OA\Put(path: '/api/users/{id}', summary: 'Update a user profile', tags: ['Users'])]
     public function update(Request $request, Response $response, array $vars): Response
-    {   
+    {
         $actorId = (int) $vars['id'];
 
         /** @var User $authUser */

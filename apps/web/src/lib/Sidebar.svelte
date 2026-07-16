@@ -183,8 +183,6 @@
                   <CollectionFolder
                     items={col.items}
                     collectionId={col.id}
-                    isCollection={true}
-                    collection={col}
                     onrequestcontextmenu={handleRequestContextMenu}
                     onfoldercontextmenu={handleFolderContextMenu}
                   />

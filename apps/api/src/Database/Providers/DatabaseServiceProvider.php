@@ -26,10 +26,10 @@ final class DatabaseServiceProvider implements ServiceProvider
     {
         // Register Symfony Cache
         $builder->addDefinitions([
-            CacheItemPoolInterface::class => function () {
+            CacheItemPoolInterface::class => static function () {
                 $cacheDir = dirname(__DIR__, 3) . '/storage/cache';
                 if (!is_dir($cacheDir)) {
-                    mkdir($cacheDir, 0755, true);
+                    mkdir($cacheDir, 0o755, true);
                 }
                 return new FilesystemAdapter('postbud_cache', 0, $cacheDir);
             },
@@ -37,18 +37,15 @@ final class DatabaseServiceProvider implements ServiceProvider
 
         // Register Doctrine EntityManager
         $builder->addDefinitions([
-            EntityManagerInterface::class => function (ContainerInterface $container) {
+            EntityManagerInterface::class => static function (ContainerInterface $container) {
                 $cache = $container->get(CacheItemPoolInterface::class);
                 $modelsDir = dirname(__DIR__, 3) . '/src';
 
                 if (!is_dir($modelsDir)) {
-                    mkdir($modelsDir, 0755, true);
+                    mkdir($modelsDir, 0o755, true);
                 }
 
-                $config = ORMSetup::createAttributeMetadataConfiguration(
-                    paths: [$modelsDir],
-                    isDevMode: true,
-                );
+                $config = ORMSetup::createAttributeMetadataConfiguration(paths: [$modelsDir], isDevMode: true);
 
                 $config->setMetadataCache($cache);
                 $config->setQueryCache($cache);
@@ -67,12 +64,12 @@ final class DatabaseServiceProvider implements ServiceProvider
 
         // Register Doctrine Migrations DependencyFactory
         $builder->addDefinitions([
-            DependencyFactory::class => function (ContainerInterface $container) {
+            DependencyFactory::class => static function (ContainerInterface $container) {
                 $entityManager = $container->get(EntityManagerInterface::class);
                 $migrationsDir = dirname(__DIR__, 3) . '/database/migrations';
 
                 if (!is_dir($migrationsDir)) {
-                    mkdir($migrationsDir, 0755, true);
+                    mkdir($migrationsDir, 0o755, true);
                 }
 
                 $migrationsConfig = new ConfigurationArray([
@@ -86,7 +83,10 @@ final class DatabaseServiceProvider implements ServiceProvider
                     'transactional' => true,
                 ]);
 
-                return DependencyFactory::fromEntityManager($migrationsConfig, new ExistingEntityManager($entityManager));
+                return DependencyFactory::fromEntityManager(
+                    $migrationsConfig,
+                    new ExistingEntityManager($entityManager),
+                );
             },
         ]);
     }
@@ -113,7 +113,7 @@ final class DatabaseServiceProvider implements ServiceProvider
                 $migrator->migrate($plan, $migratorConfiguration);
             }
         } catch (\Throwable $e) {
-            fwrite(STDERR, "Migration boot failed: " . $e->getMessage() . "\n");
+            fwrite(STDERR, 'Migration boot failed: ' . $e->getMessage() . "\n");
         }
     }
 }

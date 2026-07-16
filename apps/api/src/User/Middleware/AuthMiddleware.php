@@ -22,8 +22,9 @@ final class AuthMiddleware implements MiddlewareInterface
     public function __construct(
         private readonly JwtService $jwtService,
         private readonly EntityManagerInterface $entityManager,
-        private readonly ResponseFactoryInterface $responseFactory
-    ) {}
+        private readonly ResponseFactoryInterface $responseFactory,
+    ) {
+    }
 
     #[Override]
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
@@ -34,7 +35,7 @@ final class AuthMiddleware implements MiddlewareInterface
             return $this->unauthorized('A valid Bearer token is required.');
         }
 
-        $token   = substr($authHeader, 7);
+        $token = substr($authHeader, 7);
         $payload = $this->jwtService->decode($token);
 
         if ($payload === null || !isset($payload['sub'])) {
@@ -42,7 +43,7 @@ final class AuthMiddleware implements MiddlewareInterface
         }
 
         $userId = (int) $payload['sub'];
-        $user   = $this->entityManager->find(User::class, $userId);
+        $user = $this->entityManager->find(User::class, $userId);
 
         if (!$user instanceof User) {
             return $this->unauthorized('Authenticated user no longer exists.');
@@ -54,7 +55,7 @@ final class AuthMiddleware implements MiddlewareInterface
     private function unauthorized(string $message): ResponseInterface
     {
         $response = $this->responseFactory->createResponse(401);
-        $body     = (string) json_encode(['error' => 'Unauthorized', 'message' => $message]);
+        $body = (string) json_encode(['error' => 'Unauthorized', 'message' => $message]);
         $response->getBody()->write($body);
 
         return $response->withHeader('Content-Type', 'application/json');

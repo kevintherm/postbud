@@ -53,7 +53,7 @@ $httpKernel->routes(function (Router $router) use ($app): void {
 
     // --- Public auth routes ---
     $router->post('/api/register', [UserController::class, 'register']);
-    $router->post('/api/login',    [UserController::class, 'login']);
+    $router->post('/api/login', [UserController::class, 'login']);
 
     // --- Public proxy route (sandbox forwarding) ---
     $router->post('/api/proxy', [ProxyController::class, 'forward']);

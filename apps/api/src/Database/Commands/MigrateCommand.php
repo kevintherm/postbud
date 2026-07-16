@@ -43,17 +43,17 @@ final class MigrateCommand extends Command
             $plan = $planCalculator->getPlanUntilVersion($aliasResolver->resolveVersionAlias('latest'));
 
             if (count($plan) === 0) {
-                $output->writeln("No pending migrations to run.");
+                $output->writeln('No pending migrations to run.');
                 return 0;
             }
 
-            $output->writeln("Running " . count($plan) . " migrations...");
+            $output->writeln('Running ' . count($plan) . ' migrations...');
             $migratorConfiguration = new MigratorConfiguration();
             $migrator->migrate($plan, $migratorConfiguration);
-            $output->writeln("<info>Migrations completed successfully!</info>");
+            $output->writeln('<info>Migrations completed successfully!</info>');
             return 0;
         } catch (\Throwable $e) {
-            $output->writeln("<error>Error running migrations: " . $e->getMessage() . "</error>");
+            $output->writeln('<error>Error running migrations: ' . $e->getMessage() . '</error>');
             return 1;
         }
     }

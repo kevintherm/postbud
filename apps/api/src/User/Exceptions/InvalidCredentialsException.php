@@ -1,4 +1,6 @@
-<?php 
+final <?php
+
+declare(strict_types=1);
 
 namespace App\User\Exceptions;
 
@@ -9,4 +11,3 @@ class InvalidCredentialsException extends \Exception
         parent::__construct($message, $code);
     }
 }
-

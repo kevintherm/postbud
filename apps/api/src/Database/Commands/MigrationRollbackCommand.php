@@ -34,9 +34,9 @@ final class MigrationRollbackCommand extends Command
     {
         /** @var DependencyFactory $dependencyFactory */
         $dependencyFactory = $this->container->get(DependencyFactory::class);
-        $migrator          = $dependencyFactory->getMigrator();
-        $planCalculator    = $dependencyFactory->getMigrationPlanCalculator();
-        $aliasResolver     = $dependencyFactory->getVersionAliasResolver();
+        $migrator = $dependencyFactory->getMigrator();
+        $planCalculator = $dependencyFactory->getMigrationPlanCalculator();
+        $aliasResolver = $dependencyFactory->getVersionAliasResolver();
 
         try {
             $dependencyFactory->getMetadataStorage()->ensureInitialized();

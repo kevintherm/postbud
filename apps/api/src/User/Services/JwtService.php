@@ -16,32 +16,32 @@ final class JwtService
     /**
      * @psalm-suppress PossiblyUnusedMethod
      */
-    public function __construct(private Config $config, int $ttl = 2592000)
-    {
+    public function __construct(
+        private Config $config,
+        int $ttl = 2_592_000,
+    ) {
         /**
          * @psalm-suppress MixedAssignment
          * @psalm-suppress RedundantCondition
          * @psalm-suppress TypeDoesNotContainType
          */
         $raw = $config->require('jwt.secret');
-        $this->secret = is_string($raw) ? $raw : 'postbud-secret-change-me-in-production';
+        $this->secret = (string) $raw;
         $this->ttl = $ttl;
     }
 
     /** Encode a signed JWT for the given user ID. */
     public function encode(int $userId): string
     {
-        $header  = $this->base64url((string) json_encode(['typ' => 'JWT', 'alg' => 'HS256']));
+        $header = $this->base64url((string) json_encode(['typ' => 'JWT', 'alg' => 'HS256']));
         $payload = $this->base64url((string) json_encode([
             'sub' => $userId,
             'iat' => time(),
             'exp' => time() + $this->ttl,
         ]));
-        $signature = $this->base64url(
-            hash_hmac('sha256', "$header.$payload", $this->secret, true)
-        );
+        $signature = $this->base64url(hash_hmac('sha256', "{$header}.{$payload}", $this->secret, true));
 
-        return "$header.$payload.$signature";
+        return "{$header}.{$payload}.{$signature}";
     }
 
     /**
@@ -49,7 +49,7 @@ final class JwtService
      *
      * @return array<string, mixed>|null
      */
-    public function decode(string $token): ?array
+    public function decode(#[\SensitiveParameter] string $token): ?array
     {
         $parts = explode('.', $token);
 
@@ -59,7 +59,7 @@ final class JwtService
 
         [$header, $payload, $signature] = $parts;
 
-        $expected = $this->base64url(hash_hmac('sha256', "$header.$payload", $this->secret, true));
+        $expected = $this->base64url(hash_hmac('sha256', "{$header}.{$payload}", $this->secret, true));
 
         if (!hash_equals($expected, $signature)) {
             return null;
@@ -86,6 +86,6 @@ final class JwtService
 
     private function base64urlDecode(string $data): string
     {
-        return (string) base64_decode(strtr($data, '-_', '+/'));
+        return (string) base64_decode(strtr($data, '-_', '+/'), strict: true);
     }
 }

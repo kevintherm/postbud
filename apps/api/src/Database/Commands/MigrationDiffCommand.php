@@ -35,9 +35,9 @@ final class MigrationDiffCommand extends Command
         /** @var DependencyFactory $dependencyFactory */
         $dependencyFactory = $this->container->get(DependencyFactory::class);
 
-        $configuration  = $dependencyFactory->getConfiguration();
+        $configuration = $dependencyFactory->getConfiguration();
         $migrationPaths = $configuration->getMigrationDirectories();
-        $namespace      = key($migrationPaths);
+        $namespace = key($migrationPaths);
 
         if ($namespace === null) {
             $output->writeln('<error>Error: No migration directories configured.</error>');
@@ -49,13 +49,7 @@ final class MigrationDiffCommand extends Command
             $classNameGenerator = $dependencyFactory->getClassNameGenerator();
             $fqcn = $classNameGenerator->generateClassName($namespace);
 
-            $path = $dependencyFactory->getDiffGenerator()->generate(
-                $fqcn,
-                null,
-                false,
-                null,
-                120
-            );
+            $path = $dependencyFactory->getDiffGenerator()->generate($fqcn, null, false, null, 120);
 
             $output->writeln('<info>Generated diff migration:</info>');
             $output->writeln($path);

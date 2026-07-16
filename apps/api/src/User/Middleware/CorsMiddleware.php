@@ -22,7 +22,7 @@ final class CorsMiddleware implements MiddlewareInterface
      */
     public function __construct(
         private readonly ResponseFactoryInterface $responseFactory,
-        array $allowedOrigins = ['*']
+        array $allowedOrigins = ['*'],
     ) {
         $this->allowedOrigins = $allowedOrigins;
     }

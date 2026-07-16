@@ -1,4 +1,4 @@
-<?php
+final <?php
 
 declare(strict_types=1);
 
@@ -8,6 +8,8 @@ class LoginDto
 {
     public function __construct(
         public readonly string $email,
+        #[\SensitiveParameter]
         public readonly string $password,
-    ) {}
+    ) {
+    }
 }

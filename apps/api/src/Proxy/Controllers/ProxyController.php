@@ -16,24 +16,23 @@ final class ProxyController
     /**
      * @psalm-suppress PossiblyUnusedMethod
      */
-    #[OA\Post(
-        path: '/api/proxy',
-        summary: 'Forward an HTTP request from the client sandbox',
-        tags: ['Proxy']
-    )]
+    #[OA\Post(path: '/api/proxy', summary: 'Forward an HTTP request from the client sandbox', tags: ['Proxy'])]
     public function forward(Request $request, Response $response): Response
     {
-        $url    = (string) ($request->json('url') ?? '');
+        $url = (string) ($request->json('url') ?? '');
         $method = strtoupper((string) ($request->json('method') ?? 'GET'));
         $headers = $request->json('headers') ?? [];
-        $body   = (string) ($request->json('body') ?? '');
+        $body = (string) ($request->json('body') ?? '');
 
         if ($url === '') {
             return $response->json(['error' => 'Bad Request', 'message' => 'The "url" field is required.'], 400);
         }
 
         if (!filter_var($url, FILTER_VALIDATE_URL)) {
-            return $response->json(['error' => 'Bad Request', 'message' => 'The "url" field must be a valid URL.'], 400);
+            return $response->json([
+                'error' => 'Bad Request',
+                'message' => 'The "url" field must be a valid URL.',
+            ], 400);
         }
 
         $ch = curl_init();
@@ -43,13 +42,13 @@ final class ProxyController
         }
 
         curl_setopt_array($ch, [
-            CURLOPT_URL            => $url,
-            CURLOPT_CUSTOMREQUEST  => $method,
+            CURLOPT_URL => $url,
+            CURLOPT_CUSTOMREQUEST => $method,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HEADER         => true,
-            CURLOPT_TIMEOUT        => self::TIMEOUT_SECONDS,
+            CURLOPT_HEADER => true,
+            CURLOPT_TIMEOUT => self::TIMEOUT_SECONDS,
             CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_MAXREDIRS      => 5,
+            CURLOPT_MAXREDIRS => 5,
             CURLOPT_SSL_VERIFYPEER => true,
         ]);
 
@@ -62,25 +61,25 @@ final class ProxyController
             curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
         }
 
-        $raw        = (string) curl_exec($ch);
-        $status     = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $raw = (string) curl_exec($ch);
+        $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $headerSize = (int) curl_getinfo($ch, CURLINFO_HEADER_SIZE);
-        $error      = curl_error($ch);
+        $error = curl_error($ch);
         curl_close($ch);
 
         if ($error !== '') {
             return $response->json(['error' => 'Proxy Error', 'message' => $error], 502);
         }
 
-        $rawHeaders    = substr($raw, 0, $headerSize);
-        $responseBody  = substr($raw, $headerSize);
+        $rawHeaders = substr($raw, 0, $headerSize);
+        $responseBody = substr($raw, $headerSize);
         $parsedHeaders = $this->parseHeaders($rawHeaders);
 
         return $response->json([
-            'status'     => $status,
+            'status' => $status,
             'statusText' => $this->statusText($status),
-            'headers'    => $parsedHeaders,
-            'body'       => $responseBody,
+            'headers' => $parsedHeaders,
+            'body' => $responseBody,
         ]);
     }
 
@@ -96,9 +95,11 @@ final class ProxyController
 
         $result = [];
         foreach ($headers as $header) {
-            if (is_array($header) && isset($header['key'], $header['value']) && ($header['enabled'] ?? true)) {
-                $result[] = "{$header['key']}: {$header['value']}";
+            if (!(is_array($header) && isset($header['key'], $header['value']) && ($header['enabled'] ?? true))) {
+                continue;
             }
+
+            $result[] = "{$header['key']}: {$header['value']}";
         }
 
         return $result;
@@ -126,11 +127,19 @@ final class ProxyController
     private function statusText(int $code): string
     {
         $texts = [
-            200 => 'OK', 201 => 'Created', 204 => 'No Content',
-            400 => 'Bad Request', 401 => 'Unauthorized', 403 => 'Forbidden',
-            404 => 'Not Found', 405 => 'Method Not Allowed', 409 => 'Conflict',
-            422 => 'Unprocessable Entity', 500 => 'Internal Server Error',
-            502 => 'Bad Gateway', 503 => 'Service Unavailable',
+            200 => 'OK',
+            201 => 'Created',
+            204 => 'No Content',
+            400 => 'Bad Request',
+            401 => 'Unauthorized',
+            403 => 'Forbidden',
+            404 => 'Not Found',
+            405 => 'Method Not Allowed',
+            409 => 'Conflict',
+            422 => 'Unprocessable Entity',
+            500 => 'Internal Server Error',
+            502 => 'Bad Gateway',
+            503 => 'Service Unavailable',
         ];
         return $texts[$code] ?? 'Unknown';
     }

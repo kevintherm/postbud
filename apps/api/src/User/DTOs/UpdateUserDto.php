@@ -1,4 +1,4 @@
-<?php
+final <?php
 
 declare(strict_types=1);
 
@@ -10,5 +10,6 @@ class UpdateUserDto
         public readonly ?string $name = null,
         public readonly ?string $email = null,
         public readonly ?bool $syncEnabled = null,
-    ) {}
+    ) {
+    }
 }

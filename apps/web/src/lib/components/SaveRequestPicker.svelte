@@ -21,6 +21,7 @@
 <div
   class="save-picker"
   role="menu"
+  tabindex="0"
   onclick={(e) => e.stopPropagation()}
   oncontextmenu={(e) => { e.preventDefault(); e.stopPropagation(); }}
 >

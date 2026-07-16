@@ -1,4 +1,4 @@
-<?php
+final <?php
 
 declare(strict_types=1);
 
@@ -7,19 +7,16 @@ namespace App\User\Services;
 use App\User\DTOs\LoginDto;
 use App\User\DTOs\RegisterDto;
 use App\User\DTOs\UpdateUserDto;
-use App\User\Models\User;
-use App\User\Exceptions\InvalidCredentialsException;
 use App\User\Exceptions\ForbiddenException;
+use App\User\Exceptions\InvalidCredentialsException;
+use App\User\Models\User;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
 
 class AuthService
 {
-    public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly JwtService $jwtService
-    ) {}
+
 
     /**
      * @return array{user: User, token: string}
@@ -62,9 +59,7 @@ class AuthService
             throw new InvalidArgumentException('email and password are required.');
         }
 
-        $user = $this->entityManager
-            ->getRepository(User::class)
-            ->findOneBy(['email' => $dto->email]);
+        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $dto->email]);
 
         if (!$user instanceof User || !password_verify($dto->password, $user->getPassword())) {
             throw new InvalidCredentialsException();
@@ -88,7 +83,7 @@ class AuthService
         if ($actorId !== $user->getId()) {
             throw new ForbiddenException('You can only update your own profile.');
         }
-        
+
         if (is_string($dto->name) && $dto->name !== '') {
             $user->setName($dto->name);
         }

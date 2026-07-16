@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\User\Models;
+namespacefinal  App\User\Models;
 
 use DateTime;
 use DateTimeInterface;
@@ -40,8 +40,9 @@ class User implements JsonSerializable
     public function __construct(
         string $name,
         string $email,
+        #[\SensitiveParameter]
         string $password,
-        string $role = 'user'
+        string $role = 'user',
     ) {
         $this->name = $name;
         $this->email = $email;
@@ -114,12 +115,12 @@ class User implements JsonSerializable
     public function jsonSerialize(): array
     {
         return [
-            'id'           => $this->id,
-            'name'         => $this->name,
-            'email'        => $this->email,
-            'role'         => $this->role,
+            'id' => $this->id,
+            'name' => $this->name,
+            'email' => $this->email,
+            'role' => $this->role,
             'sync_enabled' => $this->syncEnabled,
-            'created_at'   => $this->createdAt->format(DateTimeInterface::ATOM),
+            'created_at' => $this->createdAt->format(DateTimeInterface::ATOM),
         ];
     }
 }
