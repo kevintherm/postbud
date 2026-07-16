@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\User\Models;
 
 use DateTime;
+use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
 use JsonSerializable;
 use Override;
@@ -118,7 +119,7 @@ class User implements JsonSerializable
             'email'        => $this->email,
             'role'         => $this->role,
             'sync_enabled' => $this->syncEnabled,
-            'created_at'   => $this->createdAt->format(\DateTimeInterface::ATOM),
+            'created_at'   => $this->createdAt->format(DateTimeInterface::ATOM),
         ];
     }
 }

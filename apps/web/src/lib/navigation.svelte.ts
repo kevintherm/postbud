@@ -2,16 +2,9 @@ import { store } from './store.svelte';
 import { collectAllRequestIds } from './itemUtils';
 
 class RequestNavigation {
-  expandedCollections = $state<Record<string, boolean>>({
-    'col-auth': true,
-    'col-users': true,
-    'col-debug': true
-  });
+  expandedCollections = $state<Record<string, boolean>>({});
 
-  expandedFolders = $state<Record<string, boolean>>({
-    'folder-auth-tokens': true,
-    'folder-errors': true
-  });
+  expandedFolders = $state<Record<string, boolean>>({});
 
   toggleFolder(folderId: string) {
     this.expandedFolders[folderId] = !this.expandedFolders[folderId];

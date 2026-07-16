@@ -1,7 +1,6 @@
 import { generateId } from './utils';
-import { defaultCollections, defaultEnvironments } from './mockData';
 import { getMe } from './api';
-import { sendViaProxy, sendMock } from './requestSender';
+import { sendViaProxy, sendStatic } from './requestSender';
 import {
   findRequestInItems,
   findFolderInItems,
@@ -34,8 +33,16 @@ function makeRequest(name: string): RequestItem {
 }
 
 export class ApiClientStore {
-  collections = $state<CollectionItem[]>(defaultCollections);
-  environments = $state<Environment[]>(defaultEnvironments);
+  collections = $state<CollectionItem[]>([]);
+  environments = $state<Environment[]>([
+    {
+      id: 'env-local',
+      name: 'local',
+      variables: [
+        { id: 'v1', key: 'base_url', value: 'http://localhost', enabled: true },
+      ]
+    }
+  ]);
   activeEnvironmentId = $state<string>('env-local');
 
   get activeEnvironment(): Environment | undefined {
@@ -101,23 +108,15 @@ export class ApiClientStore {
     return resolved;
   }
 
-  history = $state<HistoryItem[]>([
-    { id: 'hist-1', method: 'GET', url: '/api/v1/users', status: 200, time: 15, timestamp: '12:04:15' },
-    { id: 'hist-2', method: 'POST', url: '/api/v1/login', status: 200, time: 48, timestamp: '12:02:10' },
-    { id: 'hist-3', method: 'GET', url: '/api/v1/error/500', status: 500, time: 8, timestamp: '11:59:30' }
-  ]);
+  history = $state<HistoryItem[]>([]);
 
   activeRequest = $state<RequestItem>({
-    id: 'req-default',
-    name: 'custom request',
+    id: 'req-' + generateId(),
+    name: 'new request',
     method: 'GET',
-    url: '/api/v1/users',
-    headers: [
-      { id: generateId(), key: 'Accept', value: 'application/json', enabled: true }
-    ],
-    queryParams: [
-      { id: generateId(), key: 'limit', value: '10', enabled: true }
-    ],
+    url: '',
+    headers: [],
+    queryParams: [],
     body: '',
     bodyType: 'none'
   });
@@ -165,7 +164,7 @@ export class ApiClientStore {
     this.collections.splice(idx, 1);
     // Fallback active request if it was in the deleted collection
     if (!requestExistsInCollections(this.collections, this.activeRequest.id)) {
-      const all = flattenRequests(this.collections.map(c => ({ items: c.items })) as any);
+      const all = flattenRequests(this.collections.flatMap(c => c.items));
       if (all.length > 0) {
         this.loadRequest(all[0]);
       }
@@ -258,7 +257,7 @@ export class ApiClientStore {
       if (found) {
         found.container.splice(found.index, 1);
         if (this.activeRequest.id === requestId) {
-          const all = flattenRequests(this.collections.map(c => ({ items: c.items })) as any);
+          const all = flattenRequests(this.collections.flatMap(c => c.items));
           if (all.length > 0) {
             this.loadRequest(all[0]);
           } else {
@@ -387,10 +386,10 @@ export class ApiClientStore {
         setResponse, addHistory, setSyncStatus
       );
     } else {
-      sendMock(
+      sendStatic(
         resolvedUrl, resolvedBody, resolvedHeaders, resolvedQueryParams,
-        this.activeRequest.method, this.activeRequest.url,
-        this.activeEnvironment?.name || 'none',
+        this.activeRequest.method, this.activeRequest.bodyType,
+        this.activeRequest.url,
         setResponse, addHistory, setSyncStatus
       );
     }

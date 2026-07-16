@@ -3565,16 +3565,16 @@
         },
         {
             "name": "stout/stout",
-            "version": "v0.1.1",
+            "version": "v0.1.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kevintherm/stout-framework.git",
-                "reference": "c5d8a8281e62f1a74ad83439a1bbc36b9b5aec6e"
+                "reference": "13821040e57a2cf8961c80d9207a35485ba2f1b5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kevintherm/stout-framework/zipball/c5d8a8281e62f1a74ad83439a1bbc36b9b5aec6e",
-                "reference": "c5d8a8281e62f1a74ad83439a1bbc36b9b5aec6e",
+                "url": "https://api.github.com/repos/kevintherm/stout-framework/zipball/13821040e57a2cf8961c80d9207a35485ba2f1b5",
+                "reference": "13821040e57a2cf8961c80d9207a35485ba2f1b5",
                 "shasum": ""
             },
             "require": {
@@ -3621,9 +3621,9 @@
             ],
             "support": {
                 "issues": "https://github.com/kevintherm/stout-framework/issues",
-                "source": "https://github.com/kevintherm/stout-framework/tree/v0.1.1"
+                "source": "https://github.com/kevintherm/stout-framework/tree/v0.1.2"
             },
-            "time": "2026-07-15T09:57:27+00:00"
+            "time": "2026-07-15T17:14:51+00:00"
         },
         {
             "name": "symfony/cache",
