@@ -1,4 +1,4 @@
-final <?php
+<?php
 
 declare(strict_types=1);
 
@@ -11,7 +11,6 @@ use App\User\Exceptions\ForbiddenException;
 use App\User\Exceptions\InvalidCredentialsException;
 use App\User\Models\User;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
-use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
 
 class AuthService

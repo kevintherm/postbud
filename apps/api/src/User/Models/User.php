@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespacefinal  App\User\Models;
+namespace App\User\Models;
 
 use DateTime;
 use DateTimeInterface;

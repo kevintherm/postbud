@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Cache\Commands\ClearCacheCommand;
 use App\Database\Commands\MigrateCommand;
 use App\Database\Commands\MigrationDiffCommand;
 use App\Database\Commands\MigrationGenerateCommand;
@@ -29,6 +30,7 @@ $app = new Application(
         MigrationDiffCommand::class,
         MigrationGenerateCommand::class,
         MigrationRollbackCommand::class,
+        ClearCacheCommand::class
     ]
 );
 
@@ -64,7 +66,6 @@ $httpKernel->routes(function (Router $router) use ($app): void {
     $router->put('/api/users/{id:\d+}', [UserController::class, 'update'])->add($authMiddleware);
 });
 
-// Bootstrap routing + error middleware, then add CORS as the outermost layer.
 $httpKernel->bootstrap()->middleware(
     $app->make(CorsMiddleware::class)
 );
@@ -72,6 +73,5 @@ $httpKernel->bootstrap()->middleware(
 if (PHP_SAPI === 'cli' && !getenv('RR_MODE')) {
     exit($app->runCli($argv));
 } else {
-    // Call run() directly — bootstrap() is already done above.
     $httpKernel->run();
 }
