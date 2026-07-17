@@ -148,8 +148,6 @@
               disabled={isLoading}
             />
           </div>
-
-
         </div>
       </div>
     </div>
@@ -297,43 +295,6 @@
 
   .field-wrapper {
     width: 100%;
-  }
-
-  .checkbox-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    cursor: pointer;
-    margin-top: 4px;
-    user-select: none;
-  }
-
-  .bauhaus-checkbox {
-    width: 18px;
-    height: 18px;
-    border: 2px solid var(--bauhaus-black);
-    accent-color: var(--bauhaus-blue);
-    margin-top: 2px;
-    flex-shrink: 0;
-    appearance: auto;
-  }
-
-  .checkbox-label {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .checkbox-title {
-    font-size: 0.85rem;
-    font-weight: 700;
-    text-transform: lowercase;
-    color: var(--bauhaus-black);
-  }
-
-  .checkbox-desc {
-    font-size: 0.75rem;
-    color: #666;
   }
 
   /* Banners */

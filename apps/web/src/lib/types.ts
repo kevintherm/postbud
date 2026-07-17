@@ -29,7 +29,7 @@ export interface RequestItem {
   bodyType: 'json' | 'raw' | 'none';
 }
 
-export interface FolderItem {
+export interface CollectionItem {
   id: string;
   name: string;
   items: SidebarItem[];
@@ -37,13 +37,7 @@ export interface FolderItem {
 
 export type SidebarItem =
   | { type: 'request'; request: RequestItem }
-  | { type: 'folder'; folder: FolderItem };
-
-export interface CollectionItem {
-  id: string;
-  name: string;
-  items: SidebarItem[];
-}
+  | { type: 'collection'; collection: CollectionItem };
 
 export interface HistoryItem {
   id: string;
@@ -52,6 +46,13 @@ export interface HistoryItem {
   status: number;
   time: number;
   timestamp: string;
+  requestId?: string | null;
+  requestHeaders?: HeaderOrParam[];
+  requestParams?: HeaderOrParam[];
+  requestBody?: string;
+  responseHeaders?: Array<{ key: string; value: string }>;
+  responseBody?: string | null;
+  responseSize?: number | null;
 }
 
 export interface ResponseState {

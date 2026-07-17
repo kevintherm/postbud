@@ -1,8 +1,9 @@
 <script lang="ts">
-  let { x, y, onaddrequest, onrename, ondelete, onclose } = $props<{
+  let { x, y, onaddrequest, onaddsubcollection, onrename, ondelete, onclose } = $props<{
     x: number;
     y: number;
     onaddrequest: () => void;
+    onaddsubcollection: () => void;
     onrename: () => void;
     ondelete: () => void;
     onclose: () => void;
@@ -29,7 +30,7 @@
   }
 </script>
 
-<svelte:window onkeydown={handleKeydown} onclick={onclose} oncontextmenu={onclose} />
+<svelte:window onkeydown={handleKeydown} onclick={onclose} oncontextmenu={onclose} onfocusin={onclose} onblur={onclose} />
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
@@ -52,9 +53,16 @@
   <button
     type="button"
     class="menu-item"
+    onclick={() => { onaddsubcollection(); onclose(); }}
+  >
+    <span class="label">add collection</span>
+  </button>
+  <button
+    type="button"
+    class="menu-item"
     onclick={() => { onrename(); onclose(); }}
   >
-    <span class="label">rename folder</span>
+    <span class="label">rename collection</span>
     <span class="shortcut">f2</span>
   </button>
   <button
@@ -62,7 +70,7 @@
     class="menu-item item-delete"
     onclick={() => { ondelete(); onclose(); }}
   >
-    <span class="label text-delete">delete folder</span>
+    <span class="label text-delete">delete collection</span>
     <span class="shortcut text-delete">del</span>
   </button>
 </div>

@@ -1,27 +1,25 @@
 <script lang="ts">
   import { store } from '../store.svelte';
   import { requestNav } from '../navigation.svelte';
-  import type { SidebarItem, FolderItem } from '../types';
-  import CollectionFolder from './CollectionFolder.svelte';
+  import type { SidebarItem, CollectionItem } from '../types';
+  import CollectionNode from './CollectionNode.svelte';
 
   let {
     items,
-    collectionId,
-    parentFolderId,
+    parentId,
     onrequestcontextmenu = (_e: MouseEvent, _item: SidebarItem) => {},
-    onfoldercontextmenu = (_e: MouseEvent, _folder: FolderItem, _colId: string) => {},
+    oncollectioncontextmenu = (_e: MouseEvent, _col: CollectionItem) => {},
   }: {
     items: SidebarItem[];
-    collectionId: string;
-    parentFolderId?: string;
+    parentId: string;
     onrequestcontextmenu?: (e: MouseEvent, item: SidebarItem) => void;
-    onfoldercontextmenu?: (e: MouseEvent, folder: FolderItem, collectionId: string) => void;
+    oncollectioncontextmenu?: (e: MouseEvent, col: CollectionItem) => void;
   } = $props();
 
   let uniqueItems = $derived.by(() => {
     const seen = new Set<string>();
     return items.filter((item) => {
-      const id = item.type === 'request' ? item.request.id : item.folder.id;
+      const id = item.type === 'request' ? item.request.id : item.collection.id;
       if (seen.has(id)) return false;
       seen.add(id);
       return true;
@@ -29,7 +27,7 @@
   });
 
   let dragOverItemId = $state<string | null>(null);
-  let dragOverType: 'folder' | 'container' | null = $state(null);
+  let dragOverType: 'collection' | 'container' | null = $state(null);
 
   function getMethodColorClass(method: string): string {
     switch (method.toUpperCase()) {
@@ -42,8 +40,8 @@
   }
 
   function handleItemDragStart(e: DragEvent, item: SidebarItem) {
-    const id = item.type === 'request' ? item.request.id : item.folder.id;
-    e.dataTransfer?.setData('text/plain', JSON.stringify({ itemId: id, type: item.type, collectionId }));
+    const id = item.type === 'request' ? item.request.id : item.collection.id;
+    e.dataTransfer?.setData('text/plain', JSON.stringify({ itemId: id, type: item.type, parentId }));
     e.dataTransfer!.effectAllowed = 'move';
   }
 
@@ -52,15 +50,15 @@
     e.dataTransfer!.dropEffect = 'move';
   }
 
-  function handleFolderDragOver(e: DragEvent, folder: FolderItem) {
+  function handleCollectionDragOver(e: DragEvent, col: CollectionItem) {
     e.preventDefault();
     e.stopPropagation();
     e.dataTransfer!.dropEffect = 'move';
-    dragOverItemId = folder.id;
-    dragOverType = 'folder';
+    dragOverItemId = col.id;
+    dragOverType = 'collection';
   }
 
-  function handleFolderDragLeave() {
+  function handleCollectionDragLeave() {
     dragOverItemId = null;
     dragOverType = null;
   }
@@ -72,12 +70,11 @@
     const raw = e.dataTransfer?.getData('text/plain');
     if (!raw) return;
     const data = JSON.parse(raw);
-    // Don't move if same location
-    if (data.collectionId === collectionId && !parentFolderId) return;
-    store.moveItem(data.itemId, collectionId, parentFolderId);
+    if (data.parentId === parentId) return;
+    store.moveItem(data.itemId, parentId);
   }
 
-  function handleFolderDrop(e: DragEvent, folder: FolderItem) {
+  function handleCollectionDrop(e: DragEvent, col: CollectionItem) {
     e.preventDefault();
     e.stopPropagation();
     dragOverItemId = null;
@@ -85,8 +82,8 @@
     const raw = e.dataTransfer?.getData('text/plain');
     if (!raw) return;
     const data = JSON.parse(raw);
-    if (data.itemId === folder.id) return;
-    store.moveItem(data.itemId, collectionId, folder.id);
+    if (data.itemId === col.id) return;
+    store.moveItem(data.itemId, col.id);
   }
 
   function handleItemDragEnd() {
@@ -94,8 +91,8 @@
     dragOverType = null;
   }
 
-  function toggleFolderExpand(folderId: string) {
-    requestNav.toggleFolder(folderId);
+  function toggleCollectionExpand(colId: string) {
+    requestNav.toggleCollection(colId);
   }
 </script>
 
@@ -107,7 +104,7 @@
   ondrop={handleContainerDrop}
   ondragend={handleItemDragEnd}
 >
-  {#each uniqueItems as item (item.type === 'request' ? item.request.id : item.folder.id)}
+  {#each uniqueItems as item (item.type === 'request' ? item.request.id : item.collection.id)}
     {#if item.type === 'request'}
       <!-- svelte-ignore a11y_no_static_element_interactions -->
       <button
@@ -122,42 +119,41 @@
         <span class="method-badge {getMethodColorClass(item.request.method)}">{item.request.method}</span>
         <span class="request-name">{item.request.name}</span>
       </button>
-    {:else if item.type === 'folder'}
-      <div class="folder-wrapper">
+    {:else if item.type === 'collection'}
+      <div class="collection-wrapper">
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
         <!-- svelte-ignore a11y_role_has_required_aria_props -->
         <div
-          class="folder-header"
-          class:drag-over-folder={dragOverItemId === item.folder.id && dragOverType === 'folder'}
-          data-folder-id={item.folder.id}
-          data-folder-name={item.folder.name}
+          class="collection-header"
+          class:drag-over-collection={dragOverItemId === item.collection.id && dragOverType === 'collection'}
+          data-collection-id={item.collection.id}
+          data-collection-name={item.collection.name}
           draggable="true"
           tabindex="0"
           role="treeitem"
           ondragstart={(e) => handleItemDragStart(e, item)}
-          ondragover={(e) => handleFolderDragOver(e, item.folder)}
-          ondragleave={handleFolderDragLeave}
-          ondrop={(e) => handleFolderDrop(e, item.folder)}
+          ondragover={(e) => handleCollectionDragOver(e, item.collection)}
+          ondragleave={handleCollectionDragLeave}
+          ondrop={(e) => handleCollectionDrop(e, item.collection)}
           ondragend={handleItemDragEnd}
-          onclick={() => toggleFolderExpand(item.folder.id)}
-          oncontextmenu={(e) => onfoldercontextmenu(e, item.folder, collectionId)}
-          onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleFolderExpand(item.folder.id); }}
+          onclick={() => toggleCollectionExpand(item.collection.id)}
+          oncontextmenu={(e) => oncollectioncontextmenu(e, item.collection)}
+          onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleCollectionExpand(item.collection.id); }}
         >
-          <span class="folder-icon">
-            {requestNav.isFolderExpanded(item.folder.id) ? '▼' : '▶'}
+          <span class="collection-icon">
+            {requestNav.isCollectionExpanded(item.collection.id) ? '▼' : '▶'}
           </span>
-          <span class="folder-name">{item.folder.name}</span>
+          <span class="collection-name">{item.collection.name}</span>
         </div>
 
-        {#if requestNav.isFolderExpanded(item.folder.id)}
-          <div class="folder-children">
-            <CollectionFolder
-              items={item.folder.items}
-              collectionId={collectionId}
-              parentFolderId={item.folder.id}
+        {#if requestNav.isCollectionExpanded(item.collection.id)}
+          <div class="collection-children">
+            <CollectionNode
+              items={item.collection.items}
+              parentId={item.collection.id}
               {onrequestcontextmenu}
-              {onfoldercontextmenu}
+              {oncollectioncontextmenu}
             />
           </div>
         {/if}
@@ -184,12 +180,12 @@
     opacity: 0.5;
   }
 
-  .folder-wrapper {
+  .collection-wrapper {
     display: flex;
     flex-direction: column;
   }
 
-  .folder-header {
+  .collection-header {
     background: none;
     border: 2px solid transparent;
     width: 100%;
@@ -208,31 +204,31 @@
     user-select: none;
   }
 
-  .folder-header:hover {
+  .collection-header:hover {
     color: var(--bauhaus-blue);
   }
 
-  .folder-header:active {
+  .collection-header:active {
     cursor: grabbing;
   }
 
-  .folder-header.drag-over-folder {
+  .collection-header.drag-over-collection {
     border-color: var(--bauhaus-blue);
     background-color: rgba(0, 86, 179, 0.08);
   }
 
-  .folder-icon {
+  .collection-icon {
     font-size: 0.7rem;
     flex-shrink: 0;
   }
 
-  .folder-name {
+  .collection-name {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  .folder-children {
+  .collection-children {
     padding-left: 14px;
     border-left: 2px dashed var(--bauhaus-black);
     margin-left: 4px;

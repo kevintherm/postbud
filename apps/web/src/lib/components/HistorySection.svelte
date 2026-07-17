@@ -43,16 +43,7 @@
         <button
           type="button"
           class="history-item"
-          onclick={() => store.loadRequest({
-            id: '',
-            name: `${log.method.toLowerCase()} request`,
-            method: log.method as any,
-            url: log.url,
-            headers: [],
-            queryParams: [],
-            body: '',
-            bodyType: 'none'
-          })}
+          onclick={() => store.loadHistoryItem(log)}
         >
           <div class="history-row-top">
             <span class="method-badge {getMethodColorClass(log.method)}">{log.method}</span>

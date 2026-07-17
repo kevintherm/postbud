@@ -1,4 +1,4 @@
-import type { SidebarItem, RequestItem, FolderItem, CollectionItem } from './types';
+import type { SidebarItem, RequestItem, CollectionItem } from './types';
 
 export function findRequestInItems(
   items: SidebarItem[],
@@ -9,25 +9,25 @@ export function findRequestInItems(
     if (item.type === 'request' && item.request.id === requestId) {
       return { container: items, index: i };
     }
-    if (item.type === 'folder') {
-      const found = findRequestInItems(item.folder.items, requestId);
+    if (item.type === 'collection') {
+      const found = findRequestInItems(item.collection.items, requestId);
       if (found) return found;
     }
   }
   return null;
 }
 
-export function findFolderInItems(
+export function findCollectionInItems(
   items: SidebarItem[],
-  folderId: string
+  collectionId: string
 ): { container: SidebarItem[]; index: number } | null {
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
-    if (item.type === 'folder' && item.folder.id === folderId) {
+    if (item.type === 'collection' && item.collection.id === collectionId) {
       return { container: items, index: i };
     }
-    if (item.type === 'folder') {
-      const found = findFolderInItems(item.folder.items, folderId);
+    if (item.type === 'collection') {
+      const found = findCollectionInItems(item.collection.items, collectionId);
       if (found) return found;
     }
   }
@@ -42,12 +42,12 @@ export function findItemInItems(
     const item = items[i];
     if (
       (item.type === 'request' && item.request.id === itemId) ||
-      (item.type === 'folder' && item.folder.id === itemId)
+      (item.type === 'collection' && item.collection.id === itemId)
     ) {
       return { container: items, index: i, sidebarItem: item };
     }
-    if (item.type === 'folder') {
-      const found = findItemInItems(item.folder.items, itemId);
+    if (item.type === 'collection') {
+      const found = findItemInItems(item.collection.items, itemId);
       if (found) return found;
     }
   }
@@ -69,18 +69,18 @@ export function collectRequestIds(items: SidebarItem[]): string[] {
     if (item.type === 'request') {
       ids.push(item.request.id);
     } else {
-      ids.push(...collectRequestIds(item.folder.items));
+      ids.push(...collectRequestIds(item.collection.items));
     }
   }
   return ids;
 }
 
-export function collectFolderIds(items: SidebarItem[]): string[] {
+export function collectCollectionIds(items: SidebarItem[]): string[] {
   const ids: string[] = [];
   for (const item of items) {
-    if (item.type === 'folder') {
-      ids.push(item.folder.id);
-      ids.push(...collectFolderIds(item.folder.items));
+    if (item.type === 'collection') {
+      ids.push(item.collection.id);
+      ids.push(...collectCollectionIds(item.collection.items));
     }
   }
   return ids;
@@ -92,7 +92,7 @@ export function flattenRequests(items: SidebarItem[]): RequestItem[] {
     if (item.type === 'request') {
       result.push(item.request);
     } else {
-      result.push(...flattenRequests(item.folder.items));
+      result.push(...flattenRequests(item.collection.items));
     }
   }
   return result;

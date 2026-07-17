@@ -23,9 +23,6 @@ final class RequestHistoryService
         $request = null;
         if ($dto->requestId !== null) {
             $request = $this->em->getRepository(Request::class)->find($dto->requestId);
-            if ($request === null) {
-                throw new InvalidArgumentException('Request not found');
-            }
         }
 
         $history = new RequestHistory($user);

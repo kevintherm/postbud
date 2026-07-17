@@ -5,8 +5,8 @@
     onclose: () => void;
   }>();
 
-  function saveTo(collectionId: string, folderId?: string) {
-    store.saveToCollection(collectionId, folderId);
+  function saveTo(collectionId: string) {
+    store.saveToCollection(collectionId);
     onclose();
   }
 
@@ -14,6 +14,32 @@
     store.saveAsTopLevel();
     onclose();
   }
+
+  interface FlatCollection {
+    id: string;
+    name: string;
+    level: number;
+  }
+
+  function getFlatCollections(items: any[], level = 0): FlatCollection[] {
+    const list: FlatCollection[] = [];
+    for (const item of items) {
+      if (item.type === 'collection') {
+        list.push({ id: item.collection.id, name: item.collection.name, level });
+        list.push(...getFlatCollections(item.collection.items, level + 1));
+      }
+    }
+    return list;
+  }
+
+  let flatCollectionsList = $derived.by(() => {
+    const list: FlatCollection[] = [];
+    for (const col of store.collections) {
+      list.push({ id: col.id, name: col.name, level: 0 });
+      list.push(...getFlatCollections(col.items, 1));
+    }
+    return list;
+  });
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -33,27 +59,18 @@
     <span class="picker-top-icon">☆</span>
     <span class="picker-name">top level</span>
   </button>
-  {#if store.collections.length > 0}
-    {#each store.collections as col}
-    <button
-      type="button"
-      class="picker-item picker-collection"
-      onclick={() => saveTo(col.id)}
-    >
-      <span class="picker-icon">▦</span>
-      <span class="picker-name">{col.name}</span>
-    </button>
-    {#each col.items.filter(i => i.type === 'folder') as folder (folder.folder.id)}
+  {#if flatCollectionsList.length > 0}
+    {#each flatCollectionsList as col}
       <button
         type="button"
-        class="picker-item picker-folder"
-        onclick={() => saveTo(col.id, folder.folder.id)}
+        class="picker-item picker-collection"
+        style="padding-left: {12 + col.level * 12}px; font-weight: {col.level === 0 ? 700 : 500};"
+        onclick={() => saveTo(col.id)}
       >
-        <span class="picker-icon">&#8627;</span>
-        <span class="picker-name">{folder.folder.name}</span>
+        <span class="picker-icon">{col.level === 0 ? '▦' : '↳'}</span>
+        <span class="picker-name">{col.name}</span>
       </button>
     {/each}
-  {/each}
   {/if}
 </div>
 
@@ -122,10 +139,7 @@
     color: var(--bauhaus-blue);
   }
 
-  .picker-folder {
-    padding-left: 24px;
-    font-size: 0.75rem;
-  }
+
 
   .picker-icon {
     width: 16px;

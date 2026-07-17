@@ -34,7 +34,28 @@ export function sendViaProxy(
   })
     .then(async (res) => {
       const duration = Date.now() - startTime;
-      const envelope = await res.json() as {
+      const text = await res.text();
+      let parsed: any = null;
+      try {
+        parsed = JSON.parse(text);
+      } catch {}
+
+      if (!res.ok || (parsed && (parsed.error || parsed.message) && !('body' in parsed))) {
+        const errorBody = parsed ? JSON.stringify(parsed, null, 2) : text;
+        setResponse({
+          loading: false,
+          status: res.status || 400,
+          statusText: (parsed && parsed.error) ? parsed.error : (res.statusText || 'Bad Request'),
+          time: duration,
+          size: new Blob([errorBody]).size + ' B',
+          headers: [],
+          body: errorBody
+        });
+        setSyncStatus('synced');
+        return;
+      }
+
+      const envelope = parsed as {
         status: number; statusText: string;
         headers: { key: string; value: string }[];
         body: string;
@@ -42,19 +63,19 @@ export function sendViaProxy(
       const raw = envelope.body ?? '';
 
       // Pretty-print if the response body is valid JSON
-      let body = raw;
+      let prettyBody = raw;
       try {
-        const parsed = JSON.parse(raw);
-        body = JSON.stringify(parsed, null, 2);
+        const parsedBody = JSON.parse(raw);
+        prettyBody = JSON.stringify(parsedBody, null, 2);
       } catch {
         // Not JSON — keep as-is
       }
 
-      const sizeBytes = new Blob([body]).size;
+      const sizeBytes = new Blob([prettyBody]).size;
       const sizeFormatted = sizeBytes > 1024 ? (sizeBytes / 1024).toFixed(2) + ' KB' : sizeBytes + ' B';
       setResponse({
         loading: false, status: envelope.status, statusText: envelope.statusText,
-        time: duration, size: sizeFormatted, headers: envelope.headers ?? [], body
+        time: duration, size: sizeFormatted, headers: envelope.headers ?? [], body: prettyBody
       });
       addHistory({
         id: generateId(), method, url: requestUrl,

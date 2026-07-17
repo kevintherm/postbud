@@ -18,7 +18,7 @@ final readonly class CreateHistoryDto
         public string $url = '',
         public array $requestHeaders = [],
         public array $requestParams = [],
-        public ?array $requestBody = null,
+        public mixed $requestBody = null,
         public ?int $statusCode = null,
         public array $responseHeaders = [],
         public ?string $responseBody = null,

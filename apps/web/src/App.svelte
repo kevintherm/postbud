@@ -15,7 +15,7 @@
   let showSplash = $state(true);
   let renameTargetId = $state<string | null>(null);
   let renameTargetInitialName = $state('');
-  let renameIsFolder = $state(false);
+  let renameIsCollection = $state(false);
 
   function handleBeforeUnload(event: BeforeUnloadEvent) {
     event.preventDefault();
@@ -41,17 +41,17 @@
 
     const activeEl = document.activeElement;
     let targetId: string | null = null;
-    let isFolder = false;
+    let isCollection = false;
 
     if (activeEl) {
       const reqId = activeEl.getAttribute("data-request-id");
       if (reqId) {
         targetId = reqId;
       } else {
-        const folderId = activeEl.getAttribute("data-folder-id");
-        if (folderId) {
-          targetId = folderId;
-          isFolder = true;
+        const collectionId = activeEl.getAttribute("data-collection-id");
+        if (collectionId) {
+          targetId = collectionId;
+          isCollection = true;
         }
       }
     }
@@ -63,7 +63,7 @@
     if (!targetId) return;
 
     // Duplicate: Ctrl+D (requests only)
-    if (event.ctrlKey && event.key.toLowerCase() === "d" && !isFolder) {
+    if (event.ctrlKey && event.key.toLowerCase() === "d" && !isCollection) {
       if (requestNav.existsInCollections(targetId)) {
         event.preventDefault();
         store.duplicateRequest(targetId);
@@ -72,23 +72,23 @@
     // Rename: F2 or Alt+R
     else if (event.key === "F2" || (event.altKey && event.key.toLowerCase() === "r")) {
       event.preventDefault();
-      if (isFolder) {
-        renameIsFolder = true;
+      if (isCollection) {
+        renameIsCollection = true;
         renameTargetId = targetId;
-        renameTargetInitialName = activeEl?.getAttribute("data-folder-name") || "folder";
+        renameTargetInitialName = activeEl?.getAttribute("data-collection-name") || "collection";
       } else if (requestNav.existsInCollections(targetId)) {
-        renameIsFolder = false;
+        renameIsCollection = false;
         renameTargetId = targetId;
         renameTargetInitialName = findRequestName(store.topLevelRequests, store.collections, targetId);
       }
     }
     // Delete: Delete or Alt+Backspace
     else if (event.key === "Delete" || (event.altKey && event.key === "Backspace")) {
-      if (isFolder) {
+      if (isCollection) {
         event.preventDefault();
-        const name = activeEl?.getAttribute("data-folder-name") || "folder";
-        if (confirm(`delete folder "${name}"?`)) {
-          store.deleteFolder(targetId!);
+        const name = activeEl?.getAttribute("data-collection-name") || "collection";
+        if (confirm(`delete collection "${name}"?`)) {
+          store.deleteCollection(targetId!);
         }
       } else if (requestNav.existsInCollections(targetId)) {
         event.preventDefault();
@@ -101,7 +101,7 @@
     // Navigate items: ArrowUp / ArrowDown
     else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
       const items = Array.from(
-        document.querySelectorAll(".request-item, .folder-header")
+        document.querySelectorAll(".request-item, .collection-header")
       ) as HTMLButtonElement[];
       if (items.length > 0) {
         event.preventDefault();
@@ -199,14 +199,14 @@
   <ProfileModal />
 {/if}
 
-<!-- Rename Request / Folder Modal -->
+<!-- Rename Request / Collection Modal -->
 {#if renameTargetId}
   <RenameRequestModal
-    title={renameIsFolder ? 'rename folder' : 'rename request'}
+    title={renameIsCollection ? 'rename collection' : 'rename request'}
     initialName={renameTargetInitialName}
     onsave={(name) => {
-      if (renameIsFolder) {
-        store.renameFolder(renameTargetId!, name);
+      if (renameIsCollection) {
+        store.renameCollection(renameTargetId!, name);
       } else {
         store.renameRequest(renameTargetId!, name);
       }

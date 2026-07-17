@@ -3,12 +3,12 @@ import { updateUser } from './api';
 import { authStore } from './authStore.svelte';
 import { environmentStore } from './environmentStore.svelte';
 import { CollectionActions } from './collectionActions';
+import { RequestCrudActions } from './requestCrudActions';
 import { RequestActions } from './requestActions';
 import type {
   HeaderOrParam,
   RequestItem,
   CollectionItem,
-  FolderItem,
   SidebarItem,
   HistoryItem,
   ResponseState,
@@ -29,14 +29,14 @@ export function makeRequest(name: string): RequestItem {
   };
 }
 
-export function mapBackendCollection(c: any): CollectionItem | FolderItem {
+export function mapBackendCollection(c: any): CollectionItem {
   const items: SidebarItem[] = [];
 
   if (c.children) {
     for (const child of c.children) {
       items.push({
-        type: 'folder',
-        folder: mapBackendCollection(child) as FolderItem,
+        type: 'collection',
+        collection: mapBackendCollection(child),
       });
     }
   }
@@ -81,7 +81,18 @@ export function mapBackendHistory(h: any): HistoryItem {
     method: h.method,
     status: h.status_code,
     time: h.timing_ms,
-    timestamp: new Date(h.created_at).toLocaleTimeString(),
+    timestamp: new Date(h.executed_at || h.created_at).toLocaleTimeString(),
+    requestId: h.request_id,
+    requestHeaders: Array.isArray(h.request_headers)
+      ? h.request_headers.map((hdr: any) => ({ ...hdr, id: hdr.id || generateId() }))
+      : [],
+    requestParams: Array.isArray(h.request_params)
+      ? h.request_params.map((p: any) => ({ ...p, id: p.id || generateId() }))
+      : [],
+    requestBody: h.request_body ? (typeof h.request_body === 'string' ? h.request_body : JSON.stringify(h.request_body)) : '',
+    responseHeaders: Array.isArray(h.response_headers) ? h.response_headers : [],
+    responseBody: h.response_body,
+    responseSize: h.response_size,
   };
 }
 
@@ -131,7 +142,8 @@ export class ApiClientStore {
     typeof localStorage !== 'undefined' && localStorage.getItem('pb_sidebar_collapsed') === 'true'
   );
 
-  private collectionActions = new CollectionActions(this);
+  public collectionActions = new CollectionActions(this);
+  public requestCrudActions = new RequestCrudActions(this);
   private requestActions = new RequestActions(this);
 
   // Delegate AuthStore properties
@@ -160,22 +172,21 @@ export class ApiClientStore {
   async addCollection(name: string) { await this.collectionActions.addCollection(name); }
   async renameCollection(id: string, newName: string) { await this.collectionActions.renameCollection(id, newName); }
   async deleteCollection(id: string) { await this.collectionActions.deleteCollection(id); }
-  loadRequest(request: RequestItem | Omit<RequestItem, 'name'>) { this.collectionActions.loadRequest(request); }
-  addField(type: 'headers' | 'queryParams') { this.collectionActions.addField(type); }
-  removeField(type: 'headers' | 'queryParams', id: string) { this.collectionActions.removeField(type, id); }
-  async addRequest(collectionId: string, folderId?: string) { await this.collectionActions.addRequest(collectionId, folderId); }
-  async addTopLevelReq() { await this.collectionActions.addTopLevelReq(); }
-  saveToCollection(collectionId: string, folderId?: string): boolean { return this.collectionActions.saveToCollection(collectionId, folderId); }
-  saveAsTopLevel(): boolean { return this.collectionActions.saveAsTopLevel(); }
-  duplicateRequest(requestId: string) { this.collectionActions.duplicateRequest(requestId); }
-  async renameRequest(requestId: string, newName: string) { await this.collectionActions.renameRequest(requestId, newName); }
-  async deleteRequest(requestId: string) { await this.collectionActions.deleteRequest(requestId); }
-  async saveActiveRequest() { await this.collectionActions.saveActiveRequest(); }
-  async addFolder(collectionId: string, parentFolderId?: string) { await this.collectionActions.addFolder(collectionId, parentFolderId); }
-  async renameFolder(folderId: string, newName: string) { await this.collectionActions.renameFolder(folderId, newName); }
-  async deleteFolder(folderId: string) { await this.collectionActions.deleteFolder(folderId); }
-  async moveItem(itemId: string, targetCollectionId: string, targetFolderId?: string, insertIndex?: number) {
-    await this.collectionActions.moveItem(itemId, targetCollectionId, targetFolderId, insertIndex);
+  loadRequest(request: RequestItem | Omit<RequestItem, 'name'>) { this.requestCrudActions.loadRequest(request); }
+  loadHistoryItem(log: HistoryItem) { this.requestCrudActions.loadHistoryItem(log); }
+  addField(type: 'headers' | 'queryParams') { this.requestCrudActions.addField(type); }
+  removeField(type: 'headers' | 'queryParams', id: string) { this.requestCrudActions.removeField(type, id); }
+  async addRequest(parentId: string) { await this.requestCrudActions.addRequest(parentId); }
+  async addTopLevelReq() { await this.requestCrudActions.addTopLevelReq(); }
+  saveToCollection(parentId: string): boolean { return this.requestCrudActions.saveToCollection(parentId); }
+  saveAsTopLevel(): boolean { return this.requestCrudActions.saveAsTopLevel(); }
+  duplicateRequest(requestId: string) { this.requestCrudActions.duplicateRequest(requestId); }
+  async renameRequest(requestId: string, newName: string) { await this.requestCrudActions.renameRequest(requestId, newName); }
+  async deleteRequest(requestId: string) { await this.requestCrudActions.deleteRequest(requestId); }
+  async saveActiveRequest() { await this.requestCrudActions.saveActiveRequest(); }
+  async addSubCollection(parentId: string) { await this.collectionActions.addSubCollection(parentId); }
+  async moveItem(itemId: string, targetParentId: string, insertIndex?: number) {
+    await this.requestCrudActions.moveItem(itemId, targetParentId, insertIndex);
   }
   saveGuestData() { this.collectionActions.saveGuestData(); }
 

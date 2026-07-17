@@ -45,9 +45,9 @@ class RequestHistory implements JsonSerializable
     #[ORM\Column(name: 'request_params', type: 'json')]
     private array $requestParams = [];
 
-    /** @var array<string, mixed>|null */
+    /** @var mixed */
     #[ORM\Column(name: 'request_body', type: 'json', nullable: true)]
-    private ?array $requestBody = null;
+    private mixed $requestBody = null;
 
     #[ORM\Column(name: 'status_code', type: 'integer', nullable: true)]
     private ?int $statusCode = null;
@@ -147,17 +147,17 @@ class RequestHistory implements JsonSerializable
     }
 
     /**
-     * @return array<string, mixed>|null
+     * @return mixed
      */
-    public function getRequestBody(): ?array
+    public function getRequestBody(): mixed
     {
         return $this->requestBody;
     }
 
     /**
-     * @param array<string, mixed>|null $requestBody
+     * @param mixed $requestBody
      */
-    public function setRequestBody(?array $requestBody): void
+    public function setRequestBody(mixed $requestBody): void
     {
         $this->requestBody = $requestBody;
     }

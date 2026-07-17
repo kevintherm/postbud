@@ -46,7 +46,11 @@ export class RequestActions {
           if (this.store.activeRequest.bodyType === 'json' && this.store.activeRequest.body) {
             try {
               parsedBody = JSON.parse(this.store.activeRequest.body);
-            } catch {}
+            } catch {
+              parsedBody = this.store.activeRequest.body;
+            }
+          } else {
+            parsedBody = this.store.activeRequest.body || null;
           }
           const respHeadersObj: Record<string, string> = {};
           this.store.responseState.headers.forEach((hdr) => {

@@ -117,9 +117,19 @@ final class RequestHistoryController
             return $this->validationError('url is required');
         }
 
+        $requestId = $request->json('request_id');
+        if (is_string($requestId)) {
+            $requestId = trim($requestId);
+            if ($requestId === '' || !preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $requestId)) {
+                $requestId = null;
+            }
+        } else {
+            $requestId = null;
+        }
+
         try {
             return new CreateHistoryDto(
-                requestId: $request->json('request_id'),
+                requestId: $requestId,
                 method: (string) ($request->json('method') ?? 'GET'),
                 url: $url,
                 requestHeaders: $request->json('request_headers') ?? [],
