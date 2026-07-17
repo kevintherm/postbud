@@ -1,0 +1,246 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Postbud API",
+        "description": "Portable PWA API Client Backend",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000"
+        }
+    ],
+    "paths": {
+        "/api/collections": {
+            "get": {
+                "tags": [
+                    "Collections"
+                ],
+                "summary": "Get collection tree",
+                "operationId": "9c3432ea36a8137917cfa407ed1663f1"
+            },
+            "post": {
+                "tags": [
+                    "Collections"
+                ],
+                "summary": "Create collection",
+                "operationId": "71d106ce35b909a4129c4baa0d6707c9"
+            }
+        },
+        "/api/collections/{id}": {
+            "get": {
+                "tags": [
+                    "Collections"
+                ],
+                "summary": "Get collection by id",
+                "operationId": "63c739bae82ff04f6e91b1a6ed50975d"
+            },
+            "delete": {
+                "tags": [
+                    "Collections"
+                ],
+                "summary": "Delete collection (soft)",
+                "operationId": "ee0c1f89155f27f7d0142a8d46072830"
+            },
+            "patch": {
+                "tags": [
+                    "Collections"
+                ],
+                "summary": "Update collection",
+                "operationId": "4352077861a47d324a33fcae84432ebd"
+            }
+        },
+        "/api/collections/{id}/restore": {
+            "post": {
+                "tags": [
+                    "Collections"
+                ],
+                "summary": "Restore deleted collection",
+                "operationId": "f398415cce0d2c1708623f3c5d8b542e"
+            }
+        },
+        "/api/collections/{collectionId}/requests": {
+            "get": {
+                "tags": [
+                    "Requests"
+                ],
+                "summary": "List requests in collection",
+                "operationId": "a76282db056aab3f8367fdfb2b7aa9a1"
+            }
+        },
+        "/api/requests": {
+            "post": {
+                "tags": [
+                    "Requests"
+                ],
+                "summary": "Create request",
+                "operationId": "a6e46102d22269883910e187e9b85ead"
+            }
+        },
+        "/api/requests/{id}": {
+            "get": {
+                "tags": [
+                    "Requests"
+                ],
+                "summary": "Get request by id",
+                "operationId": "5c82485fc6500a5f951751cfdfb20a8d"
+            },
+            "delete": {
+                "tags": [
+                    "Requests"
+                ],
+                "summary": "Delete request (soft)",
+                "operationId": "f50f5387d665a8378cda58568435b6bb"
+            },
+            "patch": {
+                "tags": [
+                    "Requests"
+                ],
+                "summary": "Update request",
+                "operationId": "6ee36f7103a38e627a1461a7182e620a"
+            }
+        },
+        "/api/requests/{id}/restore": {
+            "post": {
+                "tags": [
+                    "Requests"
+                ],
+                "summary": "Restore deleted request",
+                "operationId": "d6cbadc0198719604a7b4da4ade24c9c"
+            }
+        },
+        "/api/openapi.json": {
+            "get": {
+                "summary": "Get OpenAPI specification",
+                "operationId": "4eb615a2eab3d062f39cbd4c1c260006",
+                "responses": {
+                    "200": {
+                        "description": "OpenAPI JSON Specification",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/proxy": {
+            "post": {
+                "tags": [
+                    "Proxy"
+                ],
+                "summary": "Forward an HTTP request from the client sandbox",
+                "operationId": "1d95fde6436eb8cada030397389f5630"
+            }
+        },
+        "/api/history": {
+            "get": {
+                "tags": [
+                    "RequestHistory"
+                ],
+                "summary": "Get request history",
+                "operationId": "6a45d2ac07c1db2ed6a893e72d448b67"
+            },
+            "post": {
+                "tags": [
+                    "RequestHistory"
+                ],
+                "summary": "Record request execution",
+                "operationId": "ffbd3ef16fa0fa2208cc1c804c553580"
+            },
+            "delete": {
+                "tags": [
+                    "RequestHistory"
+                ],
+                "summary": "Clear all history for user",
+                "operationId": "c4d40019af00f6cc573bb7fd442e0a4d"
+            }
+        },
+        "/api/history/{id}": {
+            "get": {
+                "tags": [
+                    "RequestHistory"
+                ],
+                "summary": "Get history entry by id",
+                "operationId": "7eb6221767c0aa68d7c3d05f3eb4ba0b"
+            },
+            "delete": {
+                "tags": [
+                    "RequestHistory"
+                ],
+                "summary": "Delete history entry",
+                "operationId": "e945ee8df346875733e2346b2707d929"
+            }
+        },
+        "/api/register": {
+            "post": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Register a new user",
+                "operationId": "85b925b5c7def5562d1354490bb58e7d"
+            }
+        },
+        "/api/login": {
+            "post": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Authenticate and receive a JWT",
+                "operationId": "28f36df7957dd2a715f8d2e73a0d94e7"
+            }
+        },
+        "/api/me": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get the authenticated user",
+                "operationId": "025162a66764ad7c10a26581c586d4ef"
+            }
+        },
+        "/api/users": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "List all users",
+                "operationId": "9fad5cc85764b48f8b48d14aec998313"
+            }
+        },
+        "/api/users/{id}": {
+            "put": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Update a user profile",
+                "operationId": "719984797ee8bb36a2679d67fe8457f2"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Collections",
+            "description": "Collection/folder management"
+        },
+        {
+            "name": "Requests",
+            "description": "Request CRUD within collections"
+        },
+        {
+            "name": "Proxy",
+            "description": "Server-side HTTP forwarding proxy for the sandbox client"
+        },
+        {
+            "name": "RequestHistory",
+            "description": "Request execution history"
+        },
+        {
+            "name": "Users",
+            "description": "User accounts and authentication"
+        }
+    ]
+}

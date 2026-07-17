@@ -21,13 +21,16 @@ final class RequestService
 
     public function create(User $user, CreateRequestDto $dto): Request
     {
-        $collection = $this->findCollectionByIdAndUser($dto->collectionId, $user);
-        if ($collection === null) {
-            throw new InvalidArgumentException('Collection not found');
+        $collection = null;
+        if ($dto->collectionId !== null && $dto->collectionId !== '') {
+            $collection = $this->findCollectionByIdAndUser($dto->collectionId, $user);
+            if ($collection === null) {
+                throw new InvalidArgumentException('Collection not found');
+            }
         }
 
-        $maxSort = $this->getMaxSortOrder($collection);
-        $request = new Request($collection, $dto->name);
+        $maxSort = $this->getMaxSortOrder($collection, $user);
+        $request = new Request($user, $dto->name, $collection);
         $request->setMethod($dto->method);
         $request->setUrl($dto->url);
         $request->setHeaders($dto->headers);
@@ -77,11 +80,15 @@ final class RequestService
         }
 
         if ($dto->collectionId !== null) {
-            $newCollection = $this->findCollectionByIdAndUser($dto->collectionId, $user);
-            if ($newCollection === null) {
-                throw new InvalidArgumentException('Target collection not found');
+            if ($dto->collectionId === '') {
+                $request->setCollection(null);
+            } else {
+                $newCollection = $this->findCollectionByIdAndUser($dto->collectionId, $user);
+                if ($newCollection === null) {
+                    throw new InvalidArgumentException('Target collection not found');
+                }
+                $request->setCollection($newCollection);
             }
-            $request->setCollection($newCollection);
         }
 
         $this->em->flush();
@@ -118,9 +125,8 @@ final class RequestService
         $qb = $this->em->createQueryBuilder()
             ->select('r')
             ->from(Request::class, 'r')
-            ->join('r.collection', 'c')
             ->where('r.id = :id')
-            ->andWhere('c.user = :user')
+            ->andWhere('r.user = :user')
             ->setParameter('id', $id)
             ->setParameter('user', $user);
 
@@ -150,6 +156,23 @@ final class RequestService
             ->getResult();
     }
 
+    /**
+     * @return Request[]
+     */
+    public function getTopLevelRequests(User $user): array
+    {
+        return $this->em->createQueryBuilder()
+            ->select('r')
+            ->from(Request::class, 'r')
+            ->where('r.collection IS NULL')
+            ->andWhere('r.user = :user')
+            ->andWhere('r.deletedAt IS NULL')
+            ->setParameter('user', $user)
+            ->orderBy('r.sortOrder', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     private function findCollectionByIdAndUser(string $id, User $user): ?Collection
     {
         return $this->em->createQueryBuilder()
@@ -164,16 +187,21 @@ final class RequestService
             ->getOneOrNullResult();
     }
 
-    private function getMaxSortOrder(Collection $collection): int
+    private function getMaxSortOrder(?Collection $collection, User $user): int
     {
-        $result = $this->em->createQueryBuilder()
+        $qb = $this->em->createQueryBuilder()
             ->select('MAX(r.sortOrder)')
             ->from(Request::class, 'r')
-            ->where('r.collection = :collection')
-            ->setParameter('collection', $collection)
-            ->getQuery()
-            ->getSingleScalarResult();
+            ->where('r.user = :user')
+            ->setParameter('user', $user);
 
+        if ($collection !== null) {
+            $qb->andWhere('r.collection = :collection')->setParameter('collection', $collection);
+        } else {
+            $qb->andWhere('r.collection IS NULL');
+        }
+
+        $result = $qb->getQuery()->getSingleScalarResult();
         return $result !== null ? (int) $result : 0;
     }
 }

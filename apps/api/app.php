@@ -11,7 +11,7 @@ use App\Database\Commands\MigrationGenerateCommand;
 use App\Database\Commands\MigrationRollbackCommand;
 use App\Database\Providers\DatabaseServiceProvider;
 use App\Logging\Providers\LoggingServiceProvider;
-use App\OpenApi\Routes\OpenApiRoutes;
+use App\OpenApi\Commands\GenerateCommand;
 use App\Proxy\Routes\ProxyRoutes;
 use App\Request\Routes\RequestRoutes;
 use App\RequestHistory\Routes\RequestHistoryRoutes;
@@ -30,12 +30,13 @@ $app = new Application(
         LoggingServiceProvider::class,
     ],
     commands: [
-            MigrateCommand::class,
-            MigrationDiffCommand::class,
-            MigrationGenerateCommand::class,
-            MigrationRollbackCommand::class,
-            ClearCacheCommand::class,
-        ]
+        MigrateCommand::class,
+        MigrationDiffCommand::class,
+        MigrationGenerateCommand::class,
+        MigrationRollbackCommand::class,
+        ClearCacheCommand::class,
+        GenerateCommand::class,
+    ]
 );
 
 $app->config()->loadGroup('app', [
@@ -57,7 +58,6 @@ $router->get('/', fn () => 'Api OK');
 
 AuthRoutes::register($router);
 ProxyRoutes::register($router);
-OpenApiRoutes::register($router);
 UserRoutes::register($router, $authMiddleware);
 CollectionRoutes::register($router, $authMiddleware);
 RequestRoutes::register($router, $authMiddleware);

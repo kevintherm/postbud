@@ -12,7 +12,7 @@ final readonly class CreateRequestDto
      * @param array<string, mixed>|null $body
      */
     public function __construct(
-        public string $collectionId,
+        public ?string $collectionId,
         public string $name,
         public string $method = 'GET',
         public string $url = '',

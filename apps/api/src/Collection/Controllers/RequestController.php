@@ -41,6 +41,22 @@ final class RequestController
         ]);
     }
 
+    #[OA\Get(path: '/api/requests', summary: 'List top-level requests', tags: ['Requests'])]
+    public function topLevel(Request $request, Response $response): Response
+    {
+        /** @var User $user */
+        $user = $request->getAttribute('auth_user');
+
+        $requests = $this->requestService->getTopLevelRequests($user);
+
+        return $response->json([
+            'requests' => array_map(
+                static fn ($req) => $req->jsonSerialize(),
+                $requests
+            ),
+        ]);
+    }
+
     #[OA\Post(path: '/api/requests', summary: 'Create request', tags: ['Requests'])]
     public function create(Request $request, Response $response): Response
     {
@@ -53,7 +69,7 @@ final class RequestController
             $body = $request->json('body');
 
             $dto = new CreateRequestDto(
-                collectionId: (string) ($request->json('collection_id') ?? ''),
+                collectionId: $request->json('collection_id') !== null ? (string) $request->json('collection_id') : null,
                 name: (string) ($request->json('name') ?? ''),
                 method: (string) ($request->json('method') ?? 'GET'),
                 url: (string) ($request->json('url') ?? ''),
@@ -62,9 +78,6 @@ final class RequestController
                 body: $body,
             );
 
-            if ($dto->collectionId === '') {
-                throw new InvalidArgumentException('collection_id is required');
-            }
             if ($dto->name === '') {
                 throw new InvalidArgumentException('name is required');
             }
@@ -106,6 +119,12 @@ final class RequestController
         $id = $vars['id'];
 
         try {
+            $json = $request->getParsedBody() ?? [];
+            $collectionId = null;
+            if (array_key_exists('collection_id', $json)) {
+                $collectionId = $json['collection_id'] !== null ? (string) $json['collection_id'] : '';
+            }
+
             $dto = new UpdateRequestDto(
                 name: $request->json('name'),
                 method: $request->json('method'),
@@ -116,7 +135,7 @@ final class RequestController
                 sortOrder: $request->json('sort_order') !== null
                     ? (int) $request->json('sort_order')
                     : null,
-                collectionId: $request->json('collection_id'),
+                collectionId: $collectionId,
             );
 
             $req = $this->requestService->update($id, $user, $dto);

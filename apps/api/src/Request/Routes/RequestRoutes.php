@@ -12,6 +12,7 @@ final class RequestRoutes
 {
     public static function register(Router $router, AuthMiddleware $authMiddleware): void
     {
+        $router->get('/api/requests', [RequestController::class, 'topLevel'])->add($authMiddleware);
         $router->post('/api/requests', [RequestController::class, 'create'])->add($authMiddleware);
         $router->get('/api/requests/{id}', [RequestController::class, 'show'])->add($authMiddleware);
         $router->patch('/api/requests/{id}', [RequestController::class, 'update'])->add($authMiddleware);

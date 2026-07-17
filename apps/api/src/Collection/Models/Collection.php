@@ -7,6 +7,7 @@ namespace App\Collection\Models;
 use App\User\Models\User;
 use DateTime;
 use DateTimeInterface;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use JsonSerializable;
 use Override;
@@ -57,6 +58,8 @@ class Collection implements JsonSerializable
         $this->user = $user;
         $this->parent = $parent;
         $this->name = $name;
+        $this->children = new ArrayCollection();
+        $this->requests = new ArrayCollection();
         $this->createdAt = new DateTime();
         $this->updatedAt = new DateTime();
     }
@@ -147,12 +150,35 @@ class Collection implements JsonSerializable
     #[Override]
     public function jsonSerialize(): array
     {
+        $activeChildren = [];
+        if ($this->children !== null) {
+            foreach ($this->children as $child) {
+                if (!$child->isDeleted()) {
+                    $activeChildren[] = $child->jsonSerialize();
+                }
+            }
+        }
+
+        $activeRequests = [];
+        if ($this->requests !== null) {
+            foreach ($this->requests as $req) {
+                if (!$req->isDeleted()) {
+                    $activeRequests[] = $req->jsonSerialize();
+                }
+            }
+        }
+
+        usort($activeChildren, fn ($a, $b) => $a['sort_order'] <=> $b['sort_order']);
+        usort($activeRequests, fn ($a, $b) => $a['sort_order'] <=> $b['sort_order']);
+
         return [
             'id' => $this->id,
             'user_id' => $this->user->getId(),
             'parent_id' => $this->parent?->getId(),
             'name' => $this->name,
             'sort_order' => $this->sortOrder,
+            'children' => $activeChildren,
+            'requests' => $activeRequests,
             'created_at' => $this->createdAt->format(DateTimeInterface::ATOM),
             'updated_at' => $this->updatedAt->format(DateTimeInterface::ATOM),
             'deleted_at' => $this->deletedAt?->format(DateTimeInterface::ATOM),
