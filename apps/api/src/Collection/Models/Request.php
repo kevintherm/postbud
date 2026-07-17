@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Collection\Models;
 
+use App\User\Models\User;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
@@ -20,9 +21,13 @@ class Request implements JsonSerializable
     #[ORM\Column(type: 'string', length: 36)]
     private string $id;
 
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id', nullable: false)]
+    private User $user;
+
     #[ORM\ManyToOne(targetEntity: Collection::class, inversedBy: 'requests')]
-    #[ORM\JoinColumn(name: 'collection_id', referencedColumnName: 'id', nullable: false)]
-    private Collection $collection;
+    #[ORM\JoinColumn(name: 'collection_id', referencedColumnName: 'id', nullable: true)]
+    private ?Collection $collection = null;
 
     #[ORM\Column(type: 'string', length: 255)]
     private string $name;
@@ -57,9 +62,10 @@ class Request implements JsonSerializable
     #[ORM\Column(name: 'deleted_at', type: 'datetime', nullable: true)]
     private ?DateTime $deletedAt = null;
 
-    public function __construct(Collection $collection, string $name)
+    public function __construct(User $user, string $name, ?Collection $collection = null)
     {
         $this->id = Uuid::uuid4()->toString();
+        $this->user = $user;
         $this->collection = $collection;
         $this->name = $name;
         $this->createdAt = new DateTime();
@@ -71,12 +77,17 @@ class Request implements JsonSerializable
         return $this->id;
     }
 
-    public function getCollection(): Collection
+    public function getUser(): User
+    {
+        return $this->user;
+    }
+
+    public function getCollection(): ?Collection
     {
         return $this->collection;
     }
 
-    public function setCollection(Collection $collection): void
+    public function setCollection(?Collection $collection): void
     {
         $this->collection = $collection;
         $this->updatedAt = new DateTime();
@@ -207,12 +218,12 @@ class Request implements JsonSerializable
         $this->deletedAt = null;
     }
 
-    #[Override]
     public function jsonSerialize(): array
     {
         return [
             'id' => $this->id,
-            'collection_id' => $this->collection->getId(),
+            'user_id' => $this->user->getId(),
+            'collection_id' => $this->collection?->getId(),
             'name' => $this->name,
             'method' => $this->method,
             'url' => $this->url,

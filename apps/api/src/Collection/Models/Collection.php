@@ -11,7 +11,6 @@ use Doctrine\ORM\Mapping as ORM;
 use JsonSerializable;
 use Override;
 use Ramsey\Uuid\Uuid;
-use Ramsey\Uuid\UuidInterface;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'collections')]
@@ -81,6 +80,16 @@ class Collection implements JsonSerializable
     {
         $this->parent = $parent;
         $this->updatedAt = new DateTime();
+    }
+
+    public function getChildren(): iterable
+    {
+        return $this->children;
+    }
+
+    public function getRequests(): iterable
+    {
+        return $this->requests;
     }
 
     public function getName(): string

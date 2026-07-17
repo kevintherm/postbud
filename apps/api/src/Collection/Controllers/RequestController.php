@@ -20,7 +20,10 @@ final class RequestController
         private readonly RequestService $requestService,
     ) {
     }
-
+    
+    /**
+     * @param array<int,mixed> $vars
+     */
     #[OA\Get(path: '/api/collections/{collectionId}/requests', summary: 'List requests in collection', tags: ['Requests'])]
     public function index(Request $request, Response $response, array $vars): Response
     {
@@ -73,7 +76,10 @@ final class RequestController
             return $response->json(['error' => 'Validation failed', 'message' => $e->getMessage()], 422);
         }
     }
-
+    
+    /**
+     * @param array<int,mixed> $vars
+     */
     #[OA\Get(path: '/api/requests/{id}', summary: 'Get request by id', tags: ['Requests'])]
     public function show(Request $request, Response $response, array $vars): Response
     {
@@ -88,7 +94,10 @@ final class RequestController
 
         return $response->json($req);
     }
-
+    
+    /**
+     * @param array<int,mixed> $vars
+     */
     #[OA\Patch(path: '/api/requests/{id}', summary: 'Update request', tags: ['Requests'])]
     public function update(Request $request, Response $response, array $vars): Response
     {
@@ -117,7 +126,10 @@ final class RequestController
             return $response->json(['error' => 'Validation failed', 'message' => $e->getMessage()], 422);
         }
     }
-
+    
+    /**
+     * @param array<int,mixed> $vars
+     */
     #[OA\Delete(path: '/api/requests/{id}', summary: 'Delete request (soft)', tags: ['Requests'])]
     public function delete(Request $request, Response $response, array $vars): Response
     {
@@ -133,7 +145,10 @@ final class RequestController
             return $response->json(['error' => 'Not found', 'message' => $e->getMessage()], 404);
         }
     }
-
+    
+    /**
+     * @param array<int,mixed> $vars
+     */
     #[OA\Post(path: '/api/requests/{id}/restore', summary: 'Restore deleted request', tags: ['Requests'])]
     public function restore(Request $request, Response $response, array $vars): Response
     {

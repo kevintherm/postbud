@@ -11,11 +11,16 @@ use App\User\Exceptions\ForbiddenException;
 use App\User\Exceptions\InvalidCredentialsException;
 use App\User\Models\User;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
 
 class AuthService
 {
-
+    public function __construct(
+        private readonly EntityManagerInterface $entityManager,
+        private readonly JwtService $jwtService,
+    ) {
+    }
 
     /**
      * @return array{user: User, token: string}

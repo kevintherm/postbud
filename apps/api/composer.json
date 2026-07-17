@@ -11,7 +11,8 @@
     "zircote/swagger-php": "^6.4",
     "illuminate/collections": "^13.19",
     "symfony/var-exporter": "^7.0",
-    "monolog/monolog": "^3.10"
+    "monolog/monolog": "^3.10",
+    "ramsey/uuid": "^4.9"
   },
   "autoload": {
     "psr-4": {

@@ -36,7 +36,10 @@ final class CollectionController
             ),
         ]);
     }
-
+    
+    /**
+     * @param array<int,mixed> $vars
+     */
     #[OA\Get(path: '/api/collections/{id}', summary: 'Get collection by id', tags: ['Collections'])]
     public function show(Request $request, Response $response, array $vars): Response
     {
@@ -75,7 +78,10 @@ final class CollectionController
             return $response->json(['error' => 'Validation failed', 'message' => $e->getMessage()], 422);
         }
     }
-
+    
+    /**
+     * @param array<int,mixed> $vars
+     */
     #[OA\Patch(path: '/api/collections/{id}', summary: 'Update collection', tags: ['Collections'])]
     public function update(Request $request, Response $response, array $vars): Response
     {
@@ -99,7 +105,10 @@ final class CollectionController
             return $response->json(['error' => 'Validation failed', 'message' => $e->getMessage()], 422);
         }
     }
-
+    
+    /**
+     * @param array<int,mixed> $vars
+     */
     #[OA\Delete(path: '/api/collections/{id}', summary: 'Delete collection (soft)', tags: ['Collections'])]
     public function delete(Request $request, Response $response, array $vars): Response
     {
@@ -115,7 +124,10 @@ final class CollectionController
             return $response->json(['error' => 'Not found', 'message' => $e->getMessage()], 404);
         }
     }
-
+    
+    /**
+     * @param array<int,mixed> $vars
+     */
     #[OA\Post(path: '/api/collections/{id}/restore', summary: 'Restore deleted collection', tags: ['Collections'])]
     public function restore(Request $request, Response $response, array $vars): Response
     {

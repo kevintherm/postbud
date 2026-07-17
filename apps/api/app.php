@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Auth\Routes\AuthRoutes;
+use App\Collection\Routes\CollectionRoutes;
 use App\Cache\Commands\ClearCacheCommand;
 use App\Database\Commands\MigrateCommand;
 use App\Database\Commands\MigrationDiffCommand;
@@ -9,11 +11,13 @@ use App\Database\Commands\MigrationGenerateCommand;
 use App\Database\Commands\MigrationRollbackCommand;
 use App\Database\Providers\DatabaseServiceProvider;
 use App\Logging\Providers\LoggingServiceProvider;
-use App\OpenApi\Controllers\OpenApiController;
-use App\Proxy\Controllers\ProxyController;
-use App\User\Controllers\UserController;
+use App\OpenApi\Routes\OpenApiRoutes;
+use App\Proxy\Routes\ProxyRoutes;
+use App\Request\Routes\RequestRoutes;
+use App\RequestHistory\Routes\RequestHistoryRoutes;
 use App\User\Middleware\AuthMiddleware;
 use App\User\Middleware\CorsMiddleware;
+use App\User\Routes\UserRoutes;
 use Stout\Application;
 use Stout\Http\Router;
 
@@ -26,12 +30,12 @@ $app = new Application(
         LoggingServiceProvider::class,
     ],
     commands: [
-        MigrateCommand::class,
-        MigrationDiffCommand::class,
-        MigrationGenerateCommand::class,
-        MigrationRollbackCommand::class,
-        ClearCacheCommand::class
-    ]
+            MigrateCommand::class,
+            MigrationDiffCommand::class,
+            MigrationGenerateCommand::class,
+            MigrationRollbackCommand::class,
+            ClearCacheCommand::class,
+        ]
 );
 
 $app->config()->loadGroup('app', [
@@ -44,27 +48,22 @@ $app->config()->loadGroup('jwt', [
 
 $httpKernel = $app->http();
 
-$httpKernel->routes(function (Router $router) use ($app): void {
-    $authMiddleware = $app->make(AuthMiddleware::class);
+$router = new Router();
 
-    // Root
-    $router->get('/', fn () => 'Api OK');
+$authMiddleware = $app->make(AuthMiddleware::class);
 
-    // OpenAPI spec
-    $router->get('/api/openapi.json', [OpenApiController::class, 'generate']);
+// Root
+$router->get('/', fn () => 'Api OK');
 
-    // --- Public auth routes ---
-    $router->post('/api/register', [UserController::class, 'register']);
-    $router->post('/api/login', [UserController::class, 'login']);
+AuthRoutes::register($router);
+ProxyRoutes::register($router);
+OpenApiRoutes::register($router);
+UserRoutes::register($router, $authMiddleware);
+CollectionRoutes::register($router, $authMiddleware);
+RequestRoutes::register($router, $authMiddleware);
+RequestHistoryRoutes::register($router, $authMiddleware);
 
-    // --- Public proxy route (sandbox forwarding) ---
-    $router->post('/api/proxy', [ProxyController::class, 'forward']);
-
-    // --- Protected user routes ---
-    $router->get('/api/me', [UserController::class, 'me'])->add($authMiddleware);
-    $router->get('/api/users', [UserController::class, 'index'])->add($authMiddleware);
-    $router->put('/api/users/{id:\d+}', [UserController::class, 'update'])->add($authMiddleware);
-});
+$httpKernel->routes($router);
 
 $httpKernel->bootstrap()->middleware(
     $app->make(CorsMiddleware::class)
