@@ -9,7 +9,6 @@ use Doctrine\DBAL\DriverManager;
 use Doctrine\Migrations\Configuration\EntityManager\ExistingEntityManager;
 use Doctrine\Migrations\Configuration\Migration\ConfigurationArray;
 use Doctrine\Migrations\DependencyFactory;
-use Doctrine\Migrations\MigratorConfiguration;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMSetup;
@@ -98,22 +97,6 @@ final class DatabaseServiceProvider implements ServiceProvider
     #[Override]
     public function boot(ContainerInterface $container): void
     {
-        // Automatically run pending migrations on application boot
-        /** @var DependencyFactory $dependencyFactory */
-        $dependencyFactory = $container->get(DependencyFactory::class);
-        $migrator = $dependencyFactory->getMigrator();
-        $planCalculator = $dependencyFactory->getMigrationPlanCalculator();
-        $aliasResolver = $dependencyFactory->getVersionAliasResolver();
-
-        try {
-            $dependencyFactory->getMetadataStorage()->ensureInitialized();
-            $plan = $planCalculator->getPlanUntilVersion($aliasResolver->resolveVersionAlias('latest'));
-            if (count($plan) > 0) {
-                $migratorConfiguration = new MigratorConfiguration();
-                $migrator->migrate($plan, $migratorConfiguration);
-            }
-        } catch (\Throwable $e) {
-            fwrite(STDERR, 'Migration boot failed: ' . $e->getMessage() . "\n");
-        }
+        // 
     }
 }
