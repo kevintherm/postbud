@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use App\Auth\Routes\AuthRoutes;
-use App\Collection\Routes\CollectionRoutes;
 use App\Cache\Commands\ClearCacheCommand;
+use App\Collection\Routes\CollectionRoutes;
 use App\Database\Commands\MigrateCommand;
 use App\Database\Commands\MigrationDiffCommand;
 use App\Database\Commands\MigrationGenerateCommand;
@@ -17,6 +17,7 @@ use App\Request\Routes\RequestRoutes;
 use App\RequestHistory\Routes\RequestHistoryRoutes;
 use App\User\Middleware\AuthMiddleware;
 use App\User\Middleware\CorsMiddleware;
+use App\User\Middleware\RateLimitMiddleware;
 use App\User\Routes\UserRoutes;
 use Stout\Application;
 use Stout\Http\Router;
@@ -64,6 +65,10 @@ RequestRoutes::register($router, $authMiddleware);
 RequestHistoryRoutes::register($router, $authMiddleware);
 
 $httpKernel->routes($router);
+
+$httpKernel->bootstrap()->middleware(
+    $app->make(RateLimitMiddleware::class)
+);
 
 $httpKernel->bootstrap()->middleware(
     $app->make(CorsMiddleware::class)

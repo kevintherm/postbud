@@ -18,6 +18,16 @@
     onfoldercontextmenu?: (e: MouseEvent, folder: FolderItem, collectionId: string) => void;
   } = $props();
 
+  let uniqueItems = $derived.by(() => {
+    const seen = new Set<string>();
+    return items.filter((item) => {
+      const id = item.type === 'request' ? item.request.id : item.folder.id;
+      if (seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+  });
+
   let dragOverItemId = $state<string | null>(null);
   let dragOverType: 'folder' | 'container' | null = $state(null);
 
@@ -97,7 +107,7 @@
   ondrop={handleContainerDrop}
   ondragend={handleItemDragEnd}
 >
-  {#each items as item (item.type === 'request' ? item.request.id : item.folder.id)}
+  {#each uniqueItems as item (item.type === 'request' ? item.request.id : item.folder.id)}
     {#if item.type === 'request'}
       <!-- svelte-ignore a11y_no_static_element_interactions -->
       <button

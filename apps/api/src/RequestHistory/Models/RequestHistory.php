@@ -69,7 +69,7 @@ class RequestHistory implements JsonSerializable
 
     public function __construct(User $user)
     {
-        $this->id = Uuid::uuid4()->toString();
+        $this->id = Uuid::uuid7()->toString();
         $this->user = $user;
         $this->executedAt = new DateTime();
     }

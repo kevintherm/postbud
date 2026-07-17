@@ -20,7 +20,7 @@ final class RequestController
         private readonly RequestService $requestService,
     ) {
     }
-    
+
     /**
      * @param array<int,mixed> $vars
      */
@@ -89,7 +89,7 @@ final class RequestController
             return $response->json(['error' => 'Validation failed', 'message' => $e->getMessage()], 422);
         }
     }
-    
+
     /**
      * @param array<int,mixed> $vars
      */
@@ -107,7 +107,7 @@ final class RequestController
 
         return $response->json($req);
     }
-    
+
     /**
      * @param array<int,mixed> $vars
      */
@@ -145,7 +145,7 @@ final class RequestController
             return $response->json(['error' => 'Validation failed', 'message' => $e->getMessage()], 422);
         }
     }
-    
+
     /**
      * @param array<int,mixed> $vars
      */
@@ -164,7 +164,7 @@ final class RequestController
             return $response->json(['error' => 'Not found', 'message' => $e->getMessage()], 404);
         }
     }
-    
+
     /**
      * @param array<int,mixed> $vars
      */

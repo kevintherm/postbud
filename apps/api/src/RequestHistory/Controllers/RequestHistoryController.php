@@ -127,7 +127,7 @@ final class RequestHistoryController
                 requestBody: $request->json('request_body'),
                 statusCode: $request->json('status_code'),
                 responseHeaders: $request->json('response_headers') ?? [],
-                responseBody: $request->json('response_body'),
+                responseBody: is_string($request->json('response_body')) ? $request->json('response_body') : json_encode($request->json('response_body')),
                 timingMs: $request->json('timing_ms'),
                 responseSize: $request->json('response_size'),
             );

@@ -97,6 +97,6 @@ final class DatabaseServiceProvider implements ServiceProvider
     #[Override]
     public function boot(ContainerInterface $container): void
     {
-        // 
+        //
     }
 }

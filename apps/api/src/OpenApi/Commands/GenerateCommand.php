@@ -47,7 +47,7 @@ final class GenerateCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $output->writeln('Scanning src directory for OpenAPI annotations...');
-        
+
         // Scan the src directory
         $openapi = (new Generator())->generate([dirname(__DIR__, 2)]);
 

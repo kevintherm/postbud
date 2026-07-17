@@ -9,7 +9,6 @@ use DateTime;
 use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
 use JsonSerializable;
-use Override;
 use Ramsey\Uuid\Uuid;
 
 #[ORM\Entity]
@@ -64,7 +63,7 @@ class Request implements JsonSerializable
 
     public function __construct(User $user, string $name, ?Collection $collection = null)
     {
-        $this->id = Uuid::uuid4()->toString();
+        $this->id = Uuid::uuid7()->toString();
         $this->user = $user;
         $this->collection = $collection;
         $this->name = $name;

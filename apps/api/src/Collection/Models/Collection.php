@@ -54,7 +54,7 @@ class Collection implements JsonSerializable
 
     public function __construct(User $user, string $name, ?Collection $parent = null)
     {
-        $this->id = Uuid::uuid4()->toString();
+        $this->id = Uuid::uuid7()->toString();
         $this->user = $user;
         $this->parent = $parent;
         $this->name = $name;

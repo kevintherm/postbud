@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Cache\Commands;
 
 use Override;
@@ -75,4 +77,3 @@ class ClearCacheCommand extends Command
         rmdir($dir);
     }
 }
-

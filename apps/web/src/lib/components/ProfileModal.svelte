@@ -149,21 +149,7 @@
             />
           </div>
 
-          <!-- Custom Bauhaus checkbox row -->
-          <label class="checkbox-row">
-            <input
-              type="checkbox"
-              bind:checked={syncEnabled}
-              disabled={isLoading}
-              class="bauhaus-checkbox"
-            />
-            <div class="checkbox-label font-body">
-              <span class="checkbox-title font-display">enable cloud sync</span>
-              <span class="checkbox-desc"
-                >automatically backup and sync request collections in real time</span
-              >
-            </div>
-          </label>
+
         </div>
       </div>
     </div>
