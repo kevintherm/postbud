@@ -12,10 +12,25 @@ export class RequestActions {
 
   sendRequest() {
     if (this.store.responseState.loading) return;
+
+    const url = this.store.activeRequest.url || '';
+    const resolvedUrl = this.store.resolveVars(url).trim();
+    if (!resolvedUrl) {
+      this.store.responseState = {
+        loading: false,
+        status: 0,
+        statusText: 'Error',
+        time: 0,
+        size: '0 B',
+        headers: [],
+        body: 'URL cannot be empty.'
+      };
+      return;
+    }
+
     this.store.responseState.loading = true;
     this.store.syncStatus = 'syncing';
 
-    const resolvedUrl = this.store.resolveVars(this.store.activeRequest.url);
     const resolvedBody = this.store.resolveVars(this.store.activeRequest.body);
     const resolvedHeaders = this.store.activeRequest.headers.map((h: HeaderOrParam) => ({
       ...h,

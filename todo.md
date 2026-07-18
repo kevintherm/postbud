@@ -7,3 +7,4 @@
 - [ ] 5. Close context menus on left click elsewhere or when focus changes
 - [ ] 6. Limit open context menus to at most one at a time (prevent multiple context menus)
 - [ ] 7. Selecting a request or history entry should populate its last response state
+- [x] 8. Prevent empty url to be sent

@@ -61,7 +61,7 @@
     <div class="send-btn">
       <Button
         variant="primary"
-        disabled={store.responseState.loading}
+        disabled={store.responseState.loading || !(store.activeRequest.url || '').trim()}
         onclick={() => store.sendRequest()}
       >
         {#if store.responseState.loading}
