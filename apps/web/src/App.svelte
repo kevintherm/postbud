@@ -14,19 +14,24 @@
 
   let showSplash = $state(true);
   let renameTargetId = $state<string | null>(null);
-  let renameTargetInitialName = $state('');
+  let renameTargetInitialName = $state("");
   let renameIsCollection = $state(false);
 
   function handleBeforeUnload(event: BeforeUnloadEvent) {
-    event.preventDefault();
-    event.returnValue = "";
+    // event.preventDefault();
+    // event.returnValue = "";
   }
 
   function isTyping(event: KeyboardEvent): boolean {
     const target = event.target as HTMLElement;
     if (!target) return false;
     const name = target.tagName.toUpperCase();
-    return name === "INPUT" || name === "TEXTAREA" || name === "SELECT" || target.isContentEditable;
+    return (
+      name === "INPUT" ||
+      name === "TEXTAREA" ||
+      name === "SELECT" ||
+      target.isContentEditable
+    );
   }
 
   function handleGlobalKeydown(event: KeyboardEvent) {
@@ -70,29 +75,45 @@
       }
     }
     // Rename: F2 or Alt+R
-    else if (event.key === "F2" || (event.altKey && event.key.toLowerCase() === "r")) {
+    else if (
+      event.key === "F2" ||
+      (event.altKey && event.key.toLowerCase() === "r")
+    ) {
       event.preventDefault();
       if (isCollection) {
         renameIsCollection = true;
         renameTargetId = targetId;
-        renameTargetInitialName = activeEl?.getAttribute("data-collection-name") || "collection";
+        renameTargetInitialName =
+          activeEl?.getAttribute("data-collection-name") || "collection";
       } else if (requestNav.existsInCollections(targetId)) {
         renameIsCollection = false;
         renameTargetId = targetId;
-        renameTargetInitialName = findRequestName(store.topLevelRequests, store.collections, targetId);
+        renameTargetInitialName = findRequestName(
+          store.topLevelRequests,
+          store.collections,
+          targetId,
+        );
       }
     }
     // Delete: Delete or Alt+Backspace
-    else if (event.key === "Delete" || (event.altKey && event.key === "Backspace")) {
+    else if (
+      event.key === "Delete" ||
+      (event.altKey && event.key === "Backspace")
+    ) {
       if (isCollection) {
         event.preventDefault();
-        const name = activeEl?.getAttribute("data-collection-name") || "collection";
+        const name =
+          activeEl?.getAttribute("data-collection-name") || "collection";
         if (confirm(`delete collection "${name}"?`)) {
           store.deleteCollection(targetId!);
         }
       } else if (requestNav.existsInCollections(targetId)) {
         event.preventDefault();
-        const name = findRequestName(store.topLevelRequests, store.collections, targetId);
+        const name = findRequestName(
+          store.topLevelRequests,
+          store.collections,
+          targetId,
+        );
         if (name && confirm(`delete request "${name}"?`)) {
           store.deleteRequest(targetId!);
         }
@@ -101,16 +122,22 @@
     // Navigate items: ArrowUp / ArrowDown
     else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
       const items = Array.from(
-        document.querySelectorAll(".request-item, .collection-header")
+        document.querySelectorAll(".request-item, .collection-header"),
       ) as HTMLButtonElement[];
       if (items.length > 0) {
         event.preventDefault();
-        const currentIndex = items.indexOf(document.activeElement as HTMLButtonElement);
+        const currentIndex = items.indexOf(
+          document.activeElement as HTMLButtonElement,
+        );
         let nextIndex = 0;
         if (event.key === "ArrowUp") {
-          nextIndex = currentIndex === -1 ? items.length - 1 : (currentIndex - 1 + items.length) % items.length;
+          nextIndex =
+            currentIndex === -1
+              ? items.length - 1
+              : (currentIndex - 1 + items.length) % items.length;
         } else {
-          nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % items.length;
+          nextIndex =
+            currentIndex === -1 ? 0 : (currentIndex + 1) % items.length;
         }
         items[nextIndex]?.focus();
       }
@@ -202,7 +229,7 @@
 <!-- Rename Request / Collection Modal -->
 {#if renameTargetId}
   <RenameRequestModal
-    title={renameIsCollection ? 'rename collection' : 'rename request'}
+    title={renameIsCollection ? "rename collection" : "rename request"}
     initialName={renameTargetInitialName}
     onsave={(name) => {
       if (renameIsCollection) {
@@ -211,7 +238,9 @@
         store.renameRequest(renameTargetId!, name);
       }
     }}
-    onclose={() => { renameTargetId = null; }}
+    onclose={() => {
+      renameTargetId = null;
+    }}
   />
 {/if}
 
