@@ -143,7 +143,6 @@ export class CollectionActions {
       } catch (e) {
         console.error(e);
         this.store.syncStatus = 'offline';
-        return;
       }
     }
     const rootIdx = this.store.collections.findIndex((c) => c.id === collectionId);

@@ -288,7 +288,6 @@ export class RequestCrudActions {
       } catch (e) {
         console.error(e);
         this.store.syncStatus = 'offline';
-        return;
       }
     }
     const topIdx = this.store.topLevelRequests.findIndex((r) => r.id === requestId);

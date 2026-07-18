@@ -3,7 +3,7 @@ import type { User } from './types';
 
 export class AuthStore {
   currentUser = $state<User | null>(
-    (typeof localStorage !== 'undefined' && localStorage.getItem('pb_user'))
+    (typeof localStorage !== 'undefined' && localStorage.getItem('pb_user') && localStorage.getItem('pb_token'))
       ? JSON.parse(localStorage.getItem('pb_user')!)
       : null
   );
@@ -42,7 +42,10 @@ export class AuthStore {
 
   async init(): Promise<void> {
     const token = typeof localStorage !== 'undefined' ? localStorage.getItem('pb_token') : null;
-    if (!token) return;
+    if (!token) {
+      this.currentUser = null;
+      return;
+    }
     try {
       const user = await getMe();
       this.currentUser = user;

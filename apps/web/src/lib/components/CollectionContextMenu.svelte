@@ -28,9 +28,15 @@
   function handleKeydown(event: KeyboardEvent) {
     if (event.key === 'Escape') onclose();
   }
+
+  function handleFocusIn(event: FocusEvent) {
+    if (element && !element.contains(event.target as Node)) {
+      onclose();
+    }
+  }
 </script>
 
-<svelte:window onkeydown={handleKeydown} onclick={onclose} oncontextmenu={onclose} onfocusin={onclose} onblur={onclose} />
+<svelte:window onkeydown={handleKeydown} onclick={onclose} oncontextmenu={onclose} onfocusin={handleFocusIn} onblur={onclose} />
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
