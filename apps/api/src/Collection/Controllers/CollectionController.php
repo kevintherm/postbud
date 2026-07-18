@@ -13,7 +13,7 @@ use OpenApi\Attributes as OA;
 use Stout\Http\Request;
 use Stout\Http\Response;
 
-#[OA\Tag(name: 'Collections', description: 'Collection/folder management')]
+#[OA\Tag(name: 'Collections', description: 'Collection management')]
 final class CollectionController
 {
     public function __construct(

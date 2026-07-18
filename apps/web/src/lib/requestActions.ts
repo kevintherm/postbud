@@ -1,4 +1,4 @@
-import type { ApiClientStore } from './store.svelte';
+import { mapBackendHistory, type ApiClientStore } from './store.svelte';
 import { createHistory, clearHistory } from './api';
 import { sendViaProxy, sendStatic } from './requestSender';
 import type {
@@ -48,7 +48,30 @@ export class RequestActions {
     };
 
     const addHistoryCallback = async (h: HistoryItem) => {
-      this.store.history = [h, ...this.store.history];
+      const respHeadersObj: Record<string, string> = {};
+      this.store.responseState.headers.forEach((hdr) => {
+        respHeadersObj[hdr.key] = hdr.value;
+      });
+
+      const sizeBytes = this.store.responseState.body ? new Blob([this.store.responseState.body]).size : 0;
+
+      const completedHistoryItem: HistoryItem = {
+        id: h.id,
+        method: h.method,
+        url: h.url,
+        status: h.status,
+        time: h.time,
+        timestamp: h.timestamp,
+        requestId: this.store.activeRequest.id,
+        requestHeaders: this.store.activeRequest.headers.map((hdr) => ({ ...hdr })),
+        requestParams: this.store.activeRequest.queryParams.map((p) => ({ ...p })),
+        requestBody: this.store.activeRequest.body,
+        responseHeaders: this.store.responseState.headers || [],
+        responseBody: this.store.responseState.body,
+        responseSize: sizeBytes,
+      };
+
+      this.store.history = [completedHistoryItem, ...this.store.history];
       if (this.store.currentUser) {
         try {
           const headersPayload = this.store.activeRequest.headers
@@ -67,10 +90,6 @@ export class RequestActions {
           } else {
             parsedBody = this.store.activeRequest.body || null;
           }
-          const respHeadersObj: Record<string, string> = {};
-          this.store.responseState.headers.forEach((hdr) => {
-            respHeadersObj[hdr.key] = hdr.value;
-          });
 
           let respParsedBody = null;
           if (this.store.responseState.body) {
@@ -81,9 +100,7 @@ export class RequestActions {
             }
           }
 
-          const sizeBytes = this.store.responseState.body ? new Blob([this.store.responseState.body]).size : 0;
-
-          await createHistory({
+          const res = await createHistory({
             url: this.store.activeRequest.url,
             method: this.store.activeRequest.method,
             request_headers: headersPayload,
@@ -96,6 +113,14 @@ export class RequestActions {
             response_size: sizeBytes,
             request_id: this.store.activeRequest.id.startsWith('req-') ? null : this.store.activeRequest.id,
           });
+
+          if (res && res.history) {
+            const mapped = mapBackendHistory(res.history);
+            const idx = this.store.history.findIndex(x => x.id === completedHistoryItem.id);
+            if (idx !== -1) {
+              this.store.history[idx] = mapped;
+            }
+          }
         } catch (e) {
           console.error('Failed to create history on backend:', e);
         }
